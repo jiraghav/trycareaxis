@@ -16,6 +16,7 @@ export function Navbar() {
           <a href="/verticals">Verticals</a>
           <a href="/features">Features</a>
           <a href="/pricing">Pricing</a>
+          <a href="/onboarding">Onboarding</a>
           <a href="/demo">Demo</a>
           <a href="/about">About</a>
           <a href="/contact">Contact</a>
@@ -31,7 +32,7 @@ export function Navbar() {
             <a href="/portal">Portal</a>
             <a href="/admin">Admin</a>
           </div>
-          <a className="btn ghost" href="/contact#quickstart-order" data-track="nav_get_quote">Get Quote</a>
+          <a className="btn ghost" href="/onboarding" data-track="nav_get_quote">Start Intake</a>
           <a className="btn primary" href="/demo" data-track="nav_book_demo">Book a Demo</a>
 
           <button
