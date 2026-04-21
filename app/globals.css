@@ -2568,4 +2568,34 @@ img {
   .onboarding-main {
     padding: 24px;
   }
+
+  .ca-modal {
+    padding: 0;
+    place-items: stretch;
+  }
+
+  .ca-modal-panel {
+    width: 100%;
+    height: 100%;
+    border-radius: 0;
+    display: flex;
+    flex-direction: column;
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+
+  .ca-modal-header {
+    padding-top: calc(14px + env(safe-area-inset-top));
+  }
+
+  .ca-modal-video {
+    flex: 1;
+    padding-top: 0;
+  }
+
+  .ca-modal-video iframe {
+    position: static;
+    inset: auto;
+    width: 100%;
+    height: 100%;
+  }
 }

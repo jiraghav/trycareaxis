@@ -3,6 +3,8 @@ import { Footer } from '@/components/Footer';
 import { Navbar } from '@/components/Navbar';
 import { BrandLockup } from '@/components/BrandLockup';
 import { FinalCtaPanel } from '@/components/FinalCtaPanel';
+import { VideoModal } from '@/components/VideoModal';
+import styles from './page.module.css';
 
 export const metadata: Metadata = {
   title: 'Care Axis PI360 Lawyer Portal Demo',
@@ -69,27 +71,24 @@ export default function LawyerPortalPage() {
             <p className="muted">
               This is the latest PI360 lawyer portal walkthrough, designed for firms and enterprise PI groups.
             </p>
-            <div
-              style={{
-                marginTop: 14,
-                borderRadius: 16,
-                overflow: 'hidden',
-                border: '1px solid rgba(255,255,255,0.1)',
-                background: '#07101a',
-                aspectRatio: '16 / 9',
-              }}
-            >
+            <div className={styles.videoEmbed}>
               <iframe
                 title="Care Axis PI360 Lawyer Portal Demo"
                 src="https://drive.google.com/file/d/1yKVXa7r4TGvU539zO2fMWGlVsih42gTB/preview"
-                width="100%"
-                height="100%"
+                loading="lazy"
                 allow="autoplay; fullscreen"
                 allowFullScreen
-                style={{ border: 0 }}
+                className={styles.videoEmbedFrame}
               />
             </div>
             <div className="btn-row" style={{ marginTop: 16 }}>
+              <VideoModal
+                embedUrl="https://drive.google.com/file/d/1yKVXa7r4TGvU539zO2fMWGlVsih42gTB/preview"
+                title="Care Axis PI360 Lawyer Portal Demo"
+                buttonLabel="Watch Full Screen"
+                buttonClassName={`btn primary ${styles.mobileOnly}`}
+                buttonAriaLabel="Open the PI360 lawyer portal demo in a full-screen player"
+              />
               <a
                 className="btn secondary"
                 href="https://drive.google.com/file/d/1yKVXa7r4TGvU539zO2fMWGlVsih42gTB/view?usp=drivesdk"
