@@ -876,15 +876,92 @@ const sections: IntakeSection[] = [
     title: '11. Branding, white label, website, and client experience',
     copy: 'This step maps directly to the branding and client-experience section.',
     fields: [
-      { id: 'white_label_branding', label: 'White label branding', type: 'textarea', description: 'Logo, colors, custom login URL, and branded emails.', priceLogic: '$1,500 setup + $200 per month suggested.' },
-      { id: 'custom_domain_dns_support', label: 'Custom domain / DNS support', type: 'textarea', description: 'DNS changes, SPF, DKIM, DMARC, and sender domain.', priceLogic: '$300 setup suggested.' },
-      { id: 'website_needs', label: 'Website needs', type: 'select', description: 'Website or landing-page scope needed from Care Axis.', priceLogic: 'Custom web quote or bundled package.', options: [
+      { id: 'white_label_enabled', label: 'White label branding', type: 'select', group: 'White Label', description: 'Enable custom branding across the app, portals, and system emails.', priceLogic: '$1,500 setup + $200 per month suggested.', options: [
+        { label: 'Enabled', value: 'enabled' },
+        { label: 'Not needed', value: 'not-needed' },
+      ] },
+      { id: 'white_label_logo_assets', label: 'Logo assets (links)', type: 'textarea', group: 'White Label', description: 'Provide a link to logo files (SVG preferred) + any variants (dark/light, icon-only).', priceLogic: 'Used for login, nav, PDFs, and portal headers.', placeholder: 'Paste a Drive/Dropbox link (SVG/PNG) + notes about usage.' },
+      { id: 'white_label_color_primary', label: 'Primary brand color (HEX)', type: 'text', group: 'White Label', description: 'Primary brand color for buttons and highlights.', priceLogic: 'Used for UI theme and templates.', placeholder: '#0B1220' },
+      { id: 'white_label_color_secondary', label: 'Secondary brand color (HEX)', type: 'text', group: 'White Label', description: 'Secondary/supporting color for accents and secondary CTAs.', placeholder: '#2F6FED' },
+      { id: 'white_label_color_neutral', label: 'Neutral / background preference', type: 'text', group: 'White Label', description: 'Background tone and neutrals (dark/light preference).', placeholder: 'Example: dark UI, neutral slate grays' },
+      { id: 'white_label_font_preference', label: 'Font preference', type: 'text', group: 'White Label', description: 'Font family preference if you have one (or “use platform defaults”).', placeholder: 'Example: Inter / Söhne / system defaults' },
+      { id: 'white_label_login_url', label: 'Custom login URL', type: 'text', group: 'White Label', description: 'Desired branded login URL (subdomain is typical).', priceLogic: 'May require DNS coordination.', placeholder: 'Example: portal.yourdomain.com' },
+      { id: 'white_label_email_sender_profile', label: 'Branded email sender profile', type: 'textarea', group: 'White Label', description: 'From-name, reply-to, support inbox, and any compliance footer requirements.', priceLogic: 'Used for reminders, intake links, and portal notifications.', placeholder: 'Example: From = “Your Clinic”; Reply-to = support@yourdomain.com; footer text…' },
+      { id: 'white_label_branding', label: 'White label notes (optional)', type: 'textarea', group: 'White Label', description: 'Anything else about branding, UI tone, or client-facing language.', priceLogic: 'Optional.' },
+
+      { id: 'custom_domain_enabled', label: 'Custom domain / DNS support', type: 'select', group: 'Domain & Email', description: 'Coordinate DNS, sender domain, and authentication for branded email + portals.', priceLogic: '$300 setup suggested.', options: [
+        { label: 'Enabled', value: 'enabled' },
+        { label: 'Not needed', value: 'not-needed' },
+      ] },
+      { id: 'custom_domain_primary_domain', label: 'Primary domain', type: 'text', group: 'Domain & Email', description: 'Your primary domain for portals and/or sending (do not include protocol).', placeholder: 'Example: yourdomain.com' },
+      { id: 'custom_domain_subdomain_plan', label: 'Subdomain plan', type: 'textarea', group: 'Domain & Email', description: 'List subdomains needed (portal, app, mail, tracking, etc.) and who owns DNS changes.', placeholder: 'Example: portal., app., mail., tracking.; DNS owner = it@yourdomain.com' },
+      { id: 'email_authentication_requirements', label: 'Email authentication (SPF/DKIM/DMARC)', type: 'multiselect', group: 'Domain & Email', description: 'Select what you want set up or verified for deliverability.', options: [
+        { label: 'SPF', value: 'spf' },
+        { label: 'DKIM', value: 'dkim' },
+        { label: 'DMARC', value: 'dmarc' },
+        { label: 'Branded tracking domain (recommended)', value: 'tracking-domain' },
+        { label: 'Dedicated sending subdomain', value: 'sending-subdomain' },
+      ] },
+      { id: 'custom_domain_dns_support', label: 'DNS + sender domain notes (optional)', type: 'textarea', group: 'Domain & Email', description: 'Registrar, hosting provider, access constraints, or required security policies.', priceLogic: 'Optional.', placeholder: 'Example: Cloudflare-managed; change window requires 48 hours; DNS locked down to named admins.' },
+
+      { id: 'website_needs', label: 'Website needs', type: 'select', group: 'Website', description: 'Website or landing-page scope needed from Care Axis.', priceLogic: 'Custom web quote or bundled package.', options: [
         { label: 'None', value: 'none' },
         { label: 'New website', value: 'new-website' },
         { label: 'Revamp old website', value: 'revamp' },
         { label: 'Landing pages', value: 'landing-pages' },
       ] },
-      { id: 'app_portal_branding_extras', label: 'App or portal branding extras', type: 'textarea', description: 'Custom graphics, UI polish, and launch assets.', priceLogic: 'Custom creative quote.' },
+      { id: 'website_primary_goal', label: 'Primary website goal', type: 'textarea', group: 'Website', description: 'What success looks like (leads, bookings, referral conversion, reputation, etc.).', priceLogic: 'Used to scope UX and page hierarchy.', placeholder: 'Example: increase PI lead volume + improve referral conversion from law firms.' },
+      { id: 'website_pages_needed', label: 'Pages needed', type: 'multiselect', group: 'Website', description: 'Select pages you want included.', options: [
+        { label: 'Home', value: 'home' },
+        { label: 'Services', value: 'services' },
+        { label: 'Specialties / vertical pages', value: 'specialties' },
+        { label: 'Locations', value: 'locations' },
+        { label: 'Providers', value: 'providers' },
+        { label: 'Contact', value: 'contact' },
+        { label: 'Patient intake / scheduling CTA', value: 'intake-cta' },
+        { label: 'Portal login', value: 'portal-login' },
+        { label: 'Privacy + terms', value: 'legal' },
+        { label: 'Blog / resources', value: 'blog' },
+        { label: 'Careers', value: 'careers' },
+        { label: 'Custom', value: 'custom' },
+      ] },
+      { id: 'website_brand_assets_ready', label: 'Brand assets readiness', type: 'select', group: 'Website', description: 'Do you have current brand assets ready to use?', priceLogic: 'Gaps may add creative scope.', options: [
+        { label: 'Ready now', value: 'ready' },
+        { label: 'Partial', value: 'partial' },
+        { label: 'Need help creating assets', value: 'need-help' },
+      ] },
+      { id: 'website_copy_status', label: 'Copy readiness', type: 'select', group: 'Website', description: 'Copy and messaging readiness.', priceLogic: 'Copywriting is separate scope if needed.', options: [
+        { label: 'Final copy ready', value: 'final' },
+        { label: 'Draft copy exists', value: 'draft' },
+        { label: 'Need copywriting support', value: 'need-copy' },
+      ] },
+      { id: 'website_launch_target', label: 'Target launch date', type: 'date', group: 'Website', description: 'Desired date for website/landing pages to be live.', priceLogic: 'Rush timelines may change scope.' },
+      { id: 'website_integrations', label: 'Integrations', type: 'multiselect', group: 'Website', description: 'Select any integrations needed.', options: [
+        { label: 'CRM (HubSpot/Salesforce/etc.)', value: 'crm' },
+        { label: 'Call tracking (CallRail/Twilio/etc.)', value: 'call-tracking' },
+        { label: 'Scheduling embed/linkout', value: 'scheduling' },
+        { label: 'Forms + lead routing', value: 'forms' },
+        { label: 'Analytics (GA4 / Pixels)', value: 'analytics' },
+        { label: 'SEO basics', value: 'seo' },
+        { label: 'Payments (Stripe/etc.)', value: 'payments' },
+        { label: 'Other', value: 'other' },
+      ] },
+      { id: 'website_notes', label: 'Website notes (optional)', type: 'textarea', group: 'Website', description: 'Anything specific about your current site, competitors, compliance constraints, or must-have CTAs.', placeholder: 'Example: must feature PI workflow + lawyer portal; strict HIPAA disclaimers; bilingual pages.' },
+
+      { id: 'app_portal_branding_enabled', label: 'App or portal branding extras', type: 'select', group: 'Portal Experience', description: 'Custom graphics, UI polish, and launch assets beyond standard configuration.', priceLogic: 'Custom creative quote.', options: [
+        { label: 'Enabled', value: 'enabled' },
+        { label: 'Not needed', value: 'not-needed' },
+      ] },
+      { id: 'app_portal_launch_assets', label: 'Launch assets needed', type: 'multiselect', group: 'Portal Experience', description: 'Select launch assets you want produced.', options: [
+        { label: 'Portal header + login visuals', value: 'portal-visuals' },
+        { label: 'Favicon + app icons', value: 'icons' },
+        { label: 'Email header/footer templates', value: 'email-templates' },
+        { label: 'PDF letterhead / document cover', value: 'pdf-templates' },
+        { label: 'In-app empty states / illustrations', value: 'empty-states' },
+        { label: 'Brand guidelines one-pager', value: 'brand-guidelines' },
+        { label: 'Other', value: 'other' },
+      ] },
+      { id: 'app_portal_branding_extras', label: 'Portal extras notes', type: 'textarea', group: 'Portal Experience', description: 'Describe any visual direction, UX polish requests, or specific client-facing screens to improve.', priceLogic: 'Used to scope creative work.' },
     ],
   },
   {
@@ -892,22 +969,98 @@ const sections: IntakeSection[] = [
     title: '12. Training, support, service level, and implementation',
     copy: 'This step carries over the implementation tier and support structure section.',
     fields: [
-      { id: 'implementation_tier', label: 'Implementation tier', type: 'select', description: 'Choose the rollout tier.', priceLogic: '$2,500 / $4,500 / $8,500 suggested.', required: true, options: [
+      { id: 'implementation_tier', label: 'Implementation tier', type: 'select', group: 'Implementation', description: 'Choose the rollout tier.', priceLogic: '$2,500 / $4,500 / $8,500 suggested.', required: true, options: [
         { label: 'Starter', value: 'starter' },
         { label: 'Standard', value: 'standard' },
         { label: 'Enterprise', value: 'enterprise' },
       ] },
-      { id: 'training_sessions', label: 'Training sessions', type: 'textarea', description: 'Number of live sessions and role-specific tracks.', priceLogic: 'Starter 2, Standard 4, Enterprise 8 included.', required: true },
-      { id: 'support_tier', label: 'Support tier', type: 'select', description: 'Support level required after launch.', priceLogic: '$0 / $300 / $1,000+ per month suggested.', required: true, options: [
+      { id: 'implementation_kickoff_window', label: 'Kickoff window (preferred)', type: 'select', group: 'Implementation', description: 'When you want to start onboarding and configuration.', priceLogic: 'Used for scheduling and resourcing.', options: [
+        { label: 'ASAP', value: 'asap' },
+        { label: 'Within 1–2 weeks', value: '1-2-weeks' },
+        { label: 'Within 3–4 weeks', value: '3-4-weeks' },
+        { label: 'Next 30–60 days', value: '30-60-days' },
+        { label: 'Not sure yet', value: 'unknown' },
+      ] },
+      { id: 'implementation_success_criteria', label: 'Success criteria (short)', type: 'textarea', group: 'Implementation', description: 'Define what “done and successful” means for go-live.', priceLogic: 'Used to confirm scope and acceptance.', placeholder: 'Example: scheduling live + intake forms deployed + PI case workflows configured + staff trained.' },
+
+      { id: 'training_session_count', label: 'Training sessions (count)', type: 'number', group: 'Training', description: 'Total live training sessions to schedule across roles.', priceLogic: 'Starter 2, Standard 4, Enterprise 8 included.', required: true, min: 1, placeholder: 'e.g. 4' },
+      { id: 'training_delivery_mode', label: 'Training delivery', type: 'select', group: 'Training', description: 'How training should be delivered.', required: true, options: [
+        { label: 'Live remote (recommended)', value: 'live-remote' },
+        { label: 'Hybrid', value: 'hybrid' },
+        { label: 'On-site', value: 'on-site' },
+      ] },
+      { id: 'training_role_tracks', label: 'Role tracks needed', type: 'multiselect', group: 'Training', description: 'Select which role tracks you want scheduled as separate sessions.', required: true, options: [
+        { label: 'Providers', value: 'providers' },
+        { label: 'Front desk / scheduling', value: 'front-desk' },
+        { label: 'MA / clinical support', value: 'clinical-support' },
+        { label: 'Billing / RCM', value: 'billing' },
+        { label: 'Admins / superusers', value: 'admins' },
+        { label: 'Law firm portal onboarding', value: 'lawyer-portal' },
+        { label: 'Affiliate portal onboarding', value: 'affiliate-portal' },
+        { label: 'Executive / reporting', value: 'executives' },
+        { label: 'Custom', value: 'custom' },
+      ] },
+      { id: 'training_timezone', label: 'Training timezone', type: 'text', group: 'Training', description: 'Timezone for scheduling training sessions.', required: true, placeholder: 'Example: US Eastern (ET)' },
+      { id: 'training_preferred_schedule', label: 'Preferred schedule windows', type: 'textarea', group: 'Training', description: 'Days/times that work best and any blackout dates.', required: true, placeholder: 'Example: Tue/Thu 12–2pm ET; avoid month-end; record sessions for late hires.' },
+      { id: 'training_recordings', label: 'Session recordings', type: 'select', group: 'Training', description: 'Should sessions be recorded for internal use?', priceLogic: 'Recording/storage policies may apply.', options: [
+        { label: 'Yes', value: 'yes' },
+        { label: 'No', value: 'no' },
+        { label: 'Not sure yet', value: 'unknown' },
+      ] },
+      { id: 'training_sessions', label: 'Training notes (optional)', type: 'textarea', group: 'Training', description: 'Any context about trainees, experience level, or special topics.', priceLogic: 'Used to tailor training.' },
+
+      { id: 'support_tier', label: 'Support tier', type: 'select', group: 'Support', description: 'Support level required after launch.', priceLogic: '$0 / $300 / $1,000+ per month suggested.', required: true, options: [
         { label: 'Email only', value: 'email-only' },
         { label: 'Priority', value: 'priority' },
         { label: 'Dedicated manager', value: 'dedicated-manager' },
       ] },
-      { id: 'project_management_needs', label: 'Project management needs', type: 'textarea', description: 'Single point of contact, meeting cadence, and PM hours.', priceLogic: 'Extra PM hours at $150/hr suggested.' },
-      { id: 'rush_launch', label: 'Rush launch', type: 'select', description: 'Need launch in under 14 days?', priceLogic: '25% implementation rush fee suggested.', options: [
+      { id: 'support_primary_contact_name', label: 'Support primary contact', type: 'text', group: 'Support', description: 'Who should own support coordination post-launch?', priceLogic: 'Used for escalation + comms.', placeholder: 'Name' },
+      { id: 'support_primary_contact_email', label: 'Support contact email', type: 'email', group: 'Support', description: 'Support coordination email address.', placeholder: 'name@company.com' },
+      { id: 'support_channels', label: 'Support channels', type: 'multiselect', group: 'Support', description: 'How you want to route support requests.', options: [
+        { label: 'Email', value: 'email' },
+        { label: 'Ticketing system (Jira/Zendesk/etc.)', value: 'ticketing' },
+        { label: 'Slack / Teams channel', value: 'chat' },
+        { label: 'Phone / VOIP escalation', value: 'phone' },
+      ] },
+      { id: 'support_hours', label: 'Support coverage hours', type: 'select', group: 'Support', description: 'Preferred support coverage window.', options: [
+        { label: 'Business hours', value: 'business-hours' },
+        { label: 'Extended hours', value: 'extended-hours' },
+        { label: '24/7 (enterprise)', value: '24-7' },
+        { label: 'Not sure yet', value: 'unknown' },
+      ] },
+      { id: 'support_response_target', label: 'Response time target', type: 'select', group: 'Support', description: 'Expectation for initial response on priority issues.', priceLogic: 'Higher SLA may affect support tier.', options: [
+        { label: 'Same business day', value: 'same-day' },
+        { label: 'Within 4 hours', value: '4-hours' },
+        { label: 'Within 1 hour', value: '1-hour' },
+        { label: 'Not sure yet', value: 'unknown' },
+      ] },
+      { id: 'support_go_live_hypercare', label: 'Go-live hypercare', type: 'select', group: 'Support', description: 'Do you want intensified support during go-live week?', priceLogic: 'May be included in implementation tier.', options: [
+        { label: 'Yes', value: 'yes' },
+        { label: 'No', value: 'no' },
+        { label: 'Not sure yet', value: 'unknown' },
+      ] },
+
+      { id: 'project_management_needs', label: 'Project management needs', type: 'textarea', group: 'Project Management', description: 'Single point of contact, meeting cadence, and PM hours.', priceLogic: 'Extra PM hours at $150/hr suggested.', placeholder: 'Example: weekly 30-min standup; approvals via email; 1 main stakeholder + 1 backup.' },
+      { id: 'pm_meeting_cadence', label: 'Meeting cadence', type: 'select', group: 'Project Management', description: 'Preferred implementation cadence.', options: [
+        { label: 'Weekly', value: 'weekly' },
+        { label: 'Twice weekly', value: 'twice-weekly' },
+        { label: 'As needed', value: 'as-needed' },
+      ] },
+      { id: 'pm_tools_preference', label: 'PM tools preference', type: 'select', group: 'Project Management', description: 'Where you want tasks and status tracked.', options: [
+        { label: 'Care Axis-managed plan (recommended)', value: 'care-axis' },
+        { label: 'Jira', value: 'jira' },
+        { label: 'Asana', value: 'asana' },
+        { label: 'ClickUp', value: 'clickup' },
+        { label: 'Trello', value: 'trello' },
+        { label: 'Other', value: 'other' },
+      ] },
+
+      { id: 'rush_launch', label: 'Rush launch', type: 'select', group: 'Rush', description: 'Need launch in under 14 days?', priceLogic: '25% implementation rush fee suggested.', options: [
         { label: 'No', value: 'no' },
         { label: 'Yes', value: 'yes' },
       ] },
+      { id: 'rush_launch_target_date', label: 'Rush target go-live date', type: 'date', group: 'Rush', description: 'If rush is selected, confirm the exact go-live date target.', priceLogic: 'Used to confirm feasibility and staffing.' },
+      { id: 'rush_launch_constraints', label: 'Rush constraints (notes)', type: 'textarea', group: 'Rush', description: 'Anything that could block a rush launch (exports, DNS, payer enrollment, training availability).', priceLogic: 'Used to validate dependencies.' },
     ],
   },
   {
@@ -1141,6 +1294,48 @@ function parseWholeNumber(value: string | string[]) {
 }
 
 function getFieldError(field: IntakeField, value: string | string[], state: IntakeState) {
+  if (field.id === 'white_label_logo_assets' || field.id === 'white_label_color_primary' || field.id === 'white_label_login_url' || field.id === 'white_label_email_sender_profile') {
+    const whiteLabelEnabled = String(state.white_label_enabled || '');
+    if (whiteLabelEnabled === 'enabled' && !isAnswered(value)) {
+      return 'Complete this field when white label branding is enabled.';
+    }
+  }
+
+  if (field.id === 'custom_domain_primary_domain' || field.id === 'email_authentication_requirements') {
+    const customDomainEnabled = String(state.custom_domain_enabled || '');
+    if (customDomainEnabled === 'enabled' && !isAnswered(value)) {
+      return 'Complete this field when custom domain / DNS support is enabled.';
+    }
+  }
+
+  if (field.id === 'website_primary_goal' || field.id === 'website_pages_needed' || field.id === 'website_brand_assets_ready' || field.id === 'website_copy_status') {
+    const websiteNeeds = String(state.website_needs || '');
+    if (websiteNeeds && websiteNeeds !== 'none' && !isAnswered(value)) {
+      return 'Complete this field when website work is included.';
+    }
+  }
+
+  if (field.id === 'app_portal_branding_extras') {
+    const portalExtrasEnabled = String(state.app_portal_branding_enabled || '');
+    if (portalExtrasEnabled === 'enabled' && !isAnswered(value)) {
+      return 'Complete this field when portal branding extras are enabled.';
+    }
+  }
+
+  if (field.id === 'support_primary_contact_name' || field.id === 'support_primary_contact_email' || field.id === 'support_channels' || field.id === 'support_hours' || field.id === 'support_response_target') {
+    const supportTier = String(state.support_tier || '');
+    if (supportTier && supportTier !== 'email-only' && !isAnswered(value)) {
+      return 'Complete this field when Priority or Dedicated Manager support is selected.';
+    }
+  }
+
+  if (field.id === 'rush_launch_target_date' || field.id === 'rush_launch_constraints') {
+    const rush = String(state.rush_launch || '');
+    if (rush === 'yes' && !isAnswered(value)) {
+      return 'Complete this field when Rush launch is selected.';
+    }
+  }
+
   if (field.id === 'law_firm_portal_org_details' || field.id === 'law_firm_portal_permission_model' || field.id === 'law_firm_portal_matter_visibility') {
     const firmCount = parseWholeNumber(state.law_firm_portal_org_count) ?? 0;
     if (firmCount > 0 && !isAnswered(value)) {
@@ -1592,6 +1787,31 @@ export function OnboardingIntakeForm() {
     if (String(nextState.lop_pi_case_workflows_enabled || '').trim() === '' && caseTypes.includes('personal-injury')) {
       nextState.lop_pi_case_workflows_enabled = 'enabled';
       changed = true;
+    }
+
+    if (changed) {
+      setFormState(nextState);
+    }
+  }, [section.id, formState]);
+
+  useEffect(() => {
+    if (section.id !== 'training-support-implementation') return;
+
+    const nextState: IntakeState = { ...formState };
+    let changed = false;
+
+    const tier = String(nextState.implementation_tier || '').trim();
+    if (tier && String(nextState.training_session_count || '').trim() === '') {
+      const suggested =
+        tier === 'starter' ? 2
+          : tier === 'standard' ? 4
+            : tier === 'enterprise' ? 8
+              : null;
+
+      if (suggested !== null) {
+        nextState.training_session_count = String(suggested);
+        changed = true;
+      }
     }
 
     if (changed) {
