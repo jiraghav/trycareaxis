@@ -1068,35 +1068,84 @@ const sections: IntakeSection[] = [
     title: '13. Billing setup and quote authorization',
     copy: 'This step mirrors the final commercial authorization section from the questionnaire.',
     fields: [
-      { id: 'billing_model', label: 'Billing model', type: 'select', description: 'How the account should be billed.', priceLogic: 'Annual prepay discount optional at 8%-12%.', required: true, options: [
+      { id: 'billing_model', label: 'Billing model', type: 'select', group: 'Billing Terms', description: 'How the account should be billed.', priceLogic: 'Annual prepay discount optional at 8%-12%.', required: true, options: [
         { label: 'Monthly ACH', value: 'monthly-ach' },
         { label: 'Monthly card', value: 'monthly-card' },
         { label: 'Annual prepay', value: 'annual-prepay' },
         { label: 'Milestone billing', value: 'milestone-billing' },
       ] },
-      { id: 'payment_method', label: 'Payment method', type: 'select', description: 'Preferred settlement method.', priceLogic: 'Card surcharge optional if desired.', required: true, options: [
+      { id: 'annual_prepay_discount', label: 'Annual prepay discount', type: 'select', group: 'Billing Terms', description: 'Select the discount to apply for annual prepay (if used).', priceLogic: 'Suggested 8%–12%.', placeholder: 'Select discount', options: [
+        { label: '8% discount', value: '8' },
+        { label: '10% discount', value: '10' },
+        { label: '12% discount', value: '12' },
+        { label: 'Custom', value: 'custom' },
+        { label: 'No discount', value: '0' },
+      ] },
+      { id: 'annual_prepay_discount_notes', label: 'Annual prepay discount (custom notes)', type: 'textarea', group: 'Billing Terms', description: 'If custom, describe the discount and any conditions.', placeholder: 'Example: 10% discount if paid within 5 business days of invoice.' },
+      { id: 'milestone_billing_schedule', label: 'Milestone billing schedule', type: 'textarea', group: 'Billing Terms', description: 'If milestone billing, list milestones, amounts/percentages, and target dates.', priceLogic: 'Used to generate invoice schedule and contract terms.', placeholder: 'Example: 50% at kickoff, 25% after migration sign-off, 25% at go-live.' },
+
+      { id: 'payment_method', label: 'Payment method', type: 'select', group: 'Payment', description: 'Preferred settlement method.', priceLogic: 'Card surcharge optional if desired.', required: true, options: [
         { label: 'ACH preferred', value: 'ach' },
         { label: 'Card', value: 'card' },
         { label: 'Wire', value: 'wire' },
       ] },
-      { id: 'billing_start_trigger', label: 'Billing start trigger', type: 'select', description: 'When recurring billing should begin.', priceLogic: 'Internal rule selection only.', required: true, options: [
+      { id: 'card_surcharge_preference', label: 'Card surcharge preference', type: 'select', group: 'Payment', description: 'If paying by card, should a surcharge be applied (if allowed)?', priceLogic: 'Optional if desired.', options: [
+        { label: 'No surcharge', value: 'none' },
+        { label: 'Yes, apply surcharge', value: 'apply' },
+        { label: 'Not sure yet', value: 'unknown' },
+      ] },
+      { id: 'payment_processor_notes', label: 'Payment processing notes (optional)', type: 'textarea', group: 'Payment', description: 'Any constraints or preferences for processing (separate merchant IDs, refunds, etc.).', placeholder: 'Example: separate merchant IDs per location; ACH only; refunds require manager approval.' },
+
+      { id: 'billing_start_trigger', label: 'Billing start trigger', type: 'select', group: 'Billing Start', description: 'When recurring billing should begin.', priceLogic: 'Internal rule selection only.', required: true, options: [
         { label: 'At contract', value: 'contract' },
         { label: 'At kickoff', value: 'kickoff' },
         { label: 'At go-live', value: 'go-live' },
         { label: 'After migration', value: 'after-migration' },
       ] },
-      { id: 'deposit_required', label: 'Deposit required', type: 'select', description: 'Required upfront deposit level.', priceLogic: 'Recommended: 50% of implementation upfront.', required: true, options: [
+      { id: 'billing_start_notes', label: 'Billing start notes (optional)', type: 'textarea', group: 'Billing Start', description: 'Any exceptions, proration rules, or phased billing considerations.', placeholder: 'Example: start monthly billing at go-live; implementation billed at kickoff.' },
+
+      { id: 'deposit_required', label: 'Deposit required', type: 'select', group: 'Deposit', description: 'Required upfront deposit level.', priceLogic: 'Recommended: 50% of implementation upfront.', required: true, options: [
         { label: '0%', value: '0' },
         { label: '25%', value: '25' },
         { label: '50%', value: '50' },
         { label: 'Custom', value: 'custom' },
       ] },
-      { id: 'quote_approval_contact', label: 'Quote approval contact', type: 'textarea', description: 'Who receives proposal and invoice links.', priceLogic: 'Operational only.', required: true },
-      { id: 'auto_renewal_terms', label: 'Auto-renewal terms', type: 'select', description: 'Default renewal term for the account.', priceLogic: 'Affects contract template.', required: true, options: [
+      { id: 'deposit_custom_percent', label: 'Custom deposit percent', type: 'number', group: 'Deposit', description: 'If custom deposit is selected, enter the deposit percent.', priceLogic: 'Used for invoice and contract.', min: 0, max: 100, placeholder: 'e.g. 40' },
+      { id: 'deposit_due_timing', label: 'Deposit due timing', type: 'select', group: 'Deposit', description: 'When the deposit should be due.', options: [
+        { label: 'Due on signature', value: 'on-signature' },
+        { label: 'Due at kickoff', value: 'at-kickoff' },
+        { label: 'Net 7', value: 'net-7' },
+        { label: 'Net 15', value: 'net-15' },
+        { label: 'Custom', value: 'custom' },
+      ] },
+      { id: 'deposit_notes', label: 'Deposit notes (optional)', type: 'textarea', group: 'Deposit', description: 'Any special deposit requirements, billing splits, or exceptions.', placeholder: 'Example: deposit credited against first implementation invoice.' },
+
+      { id: 'quote_approval_contact', label: 'Quote approval contact', type: 'textarea', group: 'Authorization', description: 'Who receives proposal and invoice links (names + emails + roles).', priceLogic: 'Operational only.', required: true, placeholder: 'Example: Jane Smith (COO) — jane@company.com; AP inbox — ap@company.com' },
+      { id: 'invoice_delivery_method', label: 'Invoice delivery method', type: 'select', group: 'Authorization', description: 'How invoices should be delivered.', options: [
+        { label: 'Email', value: 'email' },
+        { label: 'Portal link', value: 'portal' },
+        { label: 'Email + portal link', value: 'email-and-portal' },
+      ] },
+      { id: 'billing_po_required', label: 'PO required', type: 'select', group: 'Authorization', description: 'Does your organization require a PO number on invoices?', options: [
+        { label: 'No', value: 'no' },
+        { label: 'Yes', value: 'yes' },
+        { label: 'Not sure yet', value: 'unknown' },
+      ] },
+      { id: 'billing_po_process_notes', label: 'PO process notes (optional)', type: 'textarea', group: 'Authorization', description: 'If PO is required, describe the process and timing expectations.', placeholder: 'Example: PO issued within 5 business days; invoices must reference PO on line item.' },
+
+      { id: 'auto_renewal_terms', label: 'Auto-renewal terms', type: 'select', group: 'Renewal', description: 'Default renewal term for the account.', priceLogic: 'Affects contract template.', required: true, options: [
         { label: 'Monthly', value: 'monthly' },
         { label: 'Annual', value: 'annual' },
         { label: 'Custom term', value: 'custom' },
       ] },
+      { id: 'auto_renewal_custom_notes', label: 'Auto-renewal custom term (notes)', type: 'textarea', group: 'Renewal', description: 'If custom term, define renewal length, notice window, and cancellation policy.', placeholder: 'Example: 12-month renewal; 60-day notice; cancel anytime during term with wind-down fee.' },
+      { id: 'renewal_notice_window', label: 'Renewal notice window', type: 'select', group: 'Renewal', description: 'Notice period before renewal/cancellation.', options: [
+        { label: '30 days', value: '30' },
+        { label: '60 days', value: '60' },
+        { label: '90 days', value: '90' },
+        { label: 'Custom', value: 'custom' },
+      ] },
+      { id: 'renewal_notice_custom_notes', label: 'Renewal notice (custom notes)', type: 'textarea', group: 'Renewal', description: 'If custom, describe notice period and communication expectations.' },
     ],
   },
   {
@@ -1333,6 +1382,56 @@ function getFieldError(field: IntakeField, value: string | string[], state: Inta
     const rush = String(state.rush_launch || '');
     if (rush === 'yes' && !isAnswered(value)) {
       return 'Complete this field when Rush launch is selected.';
+    }
+  }
+
+  if (field.id === 'annual_prepay_discount') {
+    const billingModel = String(state.billing_model || '');
+    if (billingModel === 'annual-prepay' && !isAnswered(value)) {
+      return 'Select the annual prepay discount.';
+    }
+  }
+
+  if (field.id === 'annual_prepay_discount_notes') {
+    const billingModel = String(state.billing_model || '');
+    const discount = String(state.annual_prepay_discount || '');
+    if (billingModel === 'annual-prepay' && discount === 'custom' && !isAnswered(value)) {
+      return 'Describe the custom annual prepay discount.';
+    }
+  }
+
+  if (field.id === 'milestone_billing_schedule') {
+    const billingModel = String(state.billing_model || '');
+    if (billingModel === 'milestone-billing' && !isAnswered(value)) {
+      return 'Provide the milestone billing schedule.';
+    }
+  }
+
+  if (field.id === 'card_surcharge_preference') {
+    const method = String(state.payment_method || '');
+    if (method === 'card' && !isAnswered(value)) {
+      return 'Select a card surcharge preference.';
+    }
+  }
+
+  if (field.id === 'deposit_custom_percent') {
+    const depositRequired = String(state.deposit_required || '');
+    if (depositRequired === 'custom' && !isAnswered(value)) {
+      return 'Enter the custom deposit percent.';
+    }
+  }
+
+  if (field.id === 'auto_renewal_custom_notes') {
+    const renewal = String(state.auto_renewal_terms || '');
+    if (renewal === 'custom' && !isAnswered(value)) {
+      return 'Describe the custom auto-renewal term.';
+    }
+  }
+
+  if (field.id === 'renewal_notice_custom_notes') {
+    const notice = String(state.renewal_notice_window || '');
+    if (notice === 'custom' && !isAnswered(value)) {
+      return 'Describe the custom renewal notice window.';
     }
   }
 
