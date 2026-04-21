@@ -11,6 +11,19 @@ export const metadata: Metadata = {
   title: 'Lawyer Demo | Care Axis',
   description:
     'Watch the Care Axis lawyer demo and book a 15-minute intro for PI360 coordination and case visibility.',
+  openGraph: {
+    title: 'Lawyer Demo | Care Axis',
+    description:
+      'Watch the Care Axis lawyer demo and book a 15-minute intro for PI360 coordination and case visibility.',
+    images: [{ url: '/opengraph-image', width: 1200, height: 630, alt: 'Care Axis' }],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Lawyer Demo | Care Axis',
+    description:
+      'Watch the Care Axis lawyer demo and book a 15-minute intro for PI360 coordination and case visibility.',
+    images: ['/twitter-image'],
+  },
 };
 
 export default function LawyerDemoPage() {
