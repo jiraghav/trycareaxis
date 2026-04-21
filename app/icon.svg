@@ -1,0 +1,41 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512" role="img" aria-label="Care Axis">
+  <defs>
+    <radialGradient id="bg" cx="22%" cy="18%" r="86%">
+      <stop offset="0%" stop-color="#1a2a45"/>
+      <stop offset="45%" stop-color="#0b1320"/>
+      <stop offset="100%" stop-color="#070d16"/>
+    </radialGradient>
+    <linearGradient id="ring" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#61b8ff"/>
+      <stop offset="55%" stop-color="#7ef1d2"/>
+      <stop offset="100%" stop-color="#8ea7ff"/>
+    </linearGradient>
+    <filter id="soft" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur in="SourceGraphic" stdDeviation="6" result="b"/>
+      <feColorMatrix in="b" type="matrix" values="
+        1 0 0 0 0
+        0 1 0 0 0
+        0 0 1 0 0
+        0 0 0 0.35 0" result="o"/>
+      <feMerge>
+        <feMergeNode in="o"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+
+  <rect width="512" height="512" rx="120" fill="url(#bg)"/>
+
+  <g filter="url(#soft)">
+    <circle cx="256" cy="256" r="172" fill="none" stroke="url(#ring)" stroke-width="22" opacity="0.92"/>
+    <circle cx="256" cy="256" r="158" fill="rgba(255,255,255,0.03)" stroke="rgba(255,255,255,0.08)" stroke-width="2"/>
+  </g>
+
+  <g fill="#eaf3ff">
+    <path d="M176 268c0-56 34-92 88-92 36 0 66 14 82 40l-38 18c-9-14-23-22-44-22-30 0-50 21-50 56 0 36 20 56 52 56 21 0 37-9 46-25l38 18c-16 28-47 44-86 44-57 0-88-36-88-93Z" opacity="0.96"/>
+    <path d="M346 326h-42l-48-74 24-36 66 110Z" opacity="0.9"/>
+  </g>
+
+  <circle cx="118" cy="116" r="10" fill="#61b8ff" opacity="0.85"/>
+</svg>
+

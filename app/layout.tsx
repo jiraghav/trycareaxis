@@ -6,6 +6,9 @@ export const metadata: Metadata = {
   title: 'Care Axis | Healthcare Operations Platform',
   description:
     'Care Axis is the parent healthcare platform with specialized software packages for PI, DPC, ortho, pain, and multi-specialty operations.',
+  icons: {
+    icon: [{ url: '/icon.svg', type: 'image/svg+xml' }],
+  },
 };
 
 export default function RootLayout({
