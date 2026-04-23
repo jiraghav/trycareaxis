@@ -1248,6 +1248,18 @@ img {
   max-width: 900px;
 }
 
+.section-header-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 18px;
+}
+
+.section-header-row .btn-row {
+  margin-top: 10px;
+  margin-bottom: 10px;
+}
+
 .list {
   padding-left: 18px;
   color: var(--muted);
@@ -1856,6 +1868,17 @@ img {
   letter-spacing: -0.02em;
 }
 
+.onboarding-step-badge {
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.06);
+  padding: 8px 12px;
+  color: #dce9f6;
+  font-size: 12px;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+}
+
 .onboarding-step-jump {
   min-width: min(360px, 100%);
 }
@@ -2279,6 +2302,10 @@ img {
   grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
+.form-grid.single-column {
+  grid-template-columns: 1fr;
+}
+
 .form-field {
   display: grid;
   gap: 8px;
@@ -2475,6 +2502,11 @@ img {
   .two-col {
     grid-template-columns: 1fr;
     gap: 28px;
+  }
+
+  .section-header-row {
+    flex-direction: column;
+    align-items: flex-start;
   }
 
   .nav-links {
