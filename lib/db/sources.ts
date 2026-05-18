@@ -22,12 +22,33 @@ export const DEFAULT_INVOICE_QUERY = `
   LEFT JOIN (
     SELECT
       invoice_id,
-      SUM(base_amount * (1 + (upcharge_percent / 100)) * qty) AS amount
+      SUM(
+        base_amount * qty * CASE
+          WHEN line_code IN ('openai', 'sms', 'custom') THEN (1 + (upcharge_percent / 100))
+          ELSE 1
+        END
+      ) AS amount
     FROM cic_platform_invoice_line
     GROUP BY invoice_id
   ) line_totals ON line_totals.invoice_id = i.id
   ORDER BY i.date_created DESC
   LIMIT 200
+`.trim();
+
+export const DEFAULT_INVOICE_LINES_QUERY = `
+  SELECT
+    l.id,
+    l.invoice_id,
+    l.line_code,
+    l.sort_order,
+    l.description,
+    l.base_amount,
+    l.upcharge_percent,
+    l.usage_month,
+    l.qty
+  FROM cic_platform_invoice_line l
+  INNER JOIN cic_platform_invoice i ON i.id = l.invoice_id
+  ORDER BY l.invoice_id DESC, l.sort_order ASC, l.id ASC
 `.trim();
 
 export const DEFAULT_PLATFORM_CLIENTS_COUNT_QUERY = `

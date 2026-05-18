@@ -10,10 +10,27 @@ export type InvoiceDbSource = {
   query?: string;
 };
 
+export type AdminInvoiceLine = {
+  id: string;
+  lineCode: string;
+  lineTypeLabel: string;
+  sortOrder: number;
+  description: string;
+  baseAmount: number;
+  baseAmountFormatted: string;
+  upchargePercent: number;
+  usageMonth: string;
+  qty: number;
+  total: number;
+  totalFormatted: string;
+};
+
 export type AdminInvoice = {
   id: string;
+  platformInvoiceId: string;
   invoiceNumber: string;
   title: string;
+  notes: string;
   client: string;
   organization: string;
   email: string;
@@ -28,6 +45,7 @@ export type AdminInvoice = {
   stripeDashboardUrl: string;
   sourceId: string;
   sourceLabel: string;
+  lines: AdminInvoiceLine[];
 };
 
 export type InvoiceSourceResult = {

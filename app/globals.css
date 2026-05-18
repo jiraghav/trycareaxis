@@ -1511,6 +1511,77 @@ img {
   border-color: rgba(255, 165, 97, 0.45);
 }
 
+.admin-expand-btn {
+  min-width: 32px;
+  padding: 4px 8px;
+  font-size: 1rem;
+  line-height: 1;
+}
+
+.admin-expand-row td {
+  padding: 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.14);
+  background: rgba(0, 0, 0, 0.18);
+}
+
+.admin-expand-panel {
+  padding: 14px 16px 16px;
+}
+
+.admin-invoice-block + .admin-invoice-block {
+  margin-top: 18px;
+  padding-top: 18px;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.admin-invoice-block-header {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 10px 16px;
+  margin-bottom: 10px;
+}
+
+.admin-invoice-block-header-toggle {
+  align-items: center;
+  margin-bottom: 0;
+}
+
+.admin-invoice-block-header-toggle .admin-expand-btn {
+  flex-shrink: 0;
+}
+
+.admin-invoice-block-title {
+  flex: 1 1 220px;
+  min-width: 0;
+}
+
+.admin-invoice-block-body {
+  margin-top: 12px;
+  padding-left: 40px;
+}
+
+.admin-invoice-block-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+}
+
+.admin-nested-table-wrap {
+  margin-top: 4px;
+}
+
+.admin-nested-table {
+  min-width: 560px;
+}
+
+.admin-nested-table th,
+.admin-nested-table td {
+  padding: 8px 10px;
+  font-size: 13px;
+}
+
 .faq-item h3 {
   margin-top: 0;
   margin-bottom: 8px;

@@ -3,12 +3,19 @@ import { Pool } from 'pg';
 import { buildClientOverview, buildDashboardMetrics } from '@/lib/db/dashboard';
 import { resolveMysqlConfig, resolvePostgresConfig } from '@/lib/db/connection';
 import {
+  formatCurrency,
+  normalizeInvoiceLine,
+  sumLineTotals,
+} from '@/lib/db/invoice-lines';
+import {
+  DEFAULT_INVOICE_LINES_QUERY,
   DEFAULT_INVOICE_QUERY,
   DEFAULT_PLATFORM_CLIENTS_COUNT_QUERY,
   getInvoiceDbSources,
 } from '@/lib/db/sources';
 import type {
   AdminInvoice,
+  AdminInvoiceLine,
   InvoiceDbSource,
   InvoiceFetchSummary,
   InvoiceSourceResult,
@@ -29,23 +36,6 @@ function pickField(row: RawRow, keys: string[]) {
   }
 
   return null;
-}
-
-function formatCurrency(amount: number, currency = 'USD') {
-  const code = currency.trim().toUpperCase() || 'USD';
-  try {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: code,
-      maximumFractionDigits: 2,
-    }).format(amount);
-  } catch {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD',
-      maximumFractionDigits: 2,
-    }).format(amount);
-  }
 }
 
 function toSortableDate(value: Date) {
@@ -122,10 +112,17 @@ function normalizeAmount(value: unknown) {
   return Number.isFinite(parsed) ? parsed : 0;
 }
 
-function normalizeInvoice(row: RawRow, source: InvoiceDbSource, index: number): AdminInvoice {
+function normalizeInvoice(
+  row: RawRow,
+  source: InvoiceDbSource,
+  index: number,
+  lines: AdminInvoiceLine[],
+): AdminInvoice {
   const rowId = pickField(row, ['id', 'invoice_id', 'uuid']);
+  const platformInvoiceId = String(rowId ?? '');
   const userId = String(pickField(row, ['user_id', 'userid', 'account_id']) ?? '');
   const title = String(pickField(row, ['title', 'invoice_title', 'description']) ?? 'Platform invoice');
+  const notes = String(pickField(row, ['notes', 'internal_notes']) ?? '');
   const invoiceNumber = String(
     pickField(row, [
       'stripe_invoice_number',
@@ -151,7 +148,8 @@ function normalizeInvoice(row: RawRow, source: InvoiceDbSource, index: number): 
   );
   const currency = String(pickField(row, ['currency']) ?? 'usd').toLowerCase();
   const rawAmount = pickField(row, ['amount', 'total', 'invoice_amount', 'balance', 'stripe_amount']);
-  const amount = normalizeAmount(rawAmount);
+  const amountFromLines = lines.length ? sumLineTotals(lines) : null;
+  const amount = amountFromLines ?? normalizeAmount(rawAmount);
   const state = normalizeState(
     pickField(row, [
       'stripe_invoice_status',
@@ -170,8 +168,10 @@ function normalizeInvoice(row: RawRow, source: InvoiceDbSource, index: number): 
 
   return {
     id: `${source.id}:${rowId ?? invoiceNumber}:${index}`,
+    platformInvoiceId,
     invoiceNumber,
     title,
+    notes,
     client,
     organization,
     email,
@@ -179,14 +179,47 @@ function normalizeInvoice(row: RawRow, source: InvoiceDbSource, index: number): 
     dueDate: dueDateValue.display,
     dueDateSort: dueDateValue.sort,
     amount,
-    amountFormatted: rawAmount != null ? formatCurrency(amount, currency) : '—',
+    amountFormatted: formatCurrency(amount, currency),
     currency: currency.toUpperCase(),
     state,
     stripeHostedUrl,
     stripeDashboardUrl,
     sourceId: source.id,
     sourceLabel: source.label,
+    lines,
   };
+}
+
+function groupLinesByInvoiceId(rows: RawRow[], currency: string) {
+  const grouped = new Map<string, AdminInvoiceLine[]>();
+
+  for (const row of rows) {
+    const invoiceId = String(pickField(row, ['invoice_id']) ?? '');
+    if (!invoiceId) {
+      continue;
+    }
+
+    const line = normalizeInvoiceLine(row, currency);
+    const existing = grouped.get(invoiceId) ?? [];
+    existing.push(line);
+    grouped.set(invoiceId, existing);
+  }
+
+  for (const [invoiceId, lines] of grouped) {
+    lines.sort((left, right) => left.sortOrder - right.sortOrder || left.id.localeCompare(right.id));
+    grouped.set(invoiceId, lines);
+  }
+
+  return grouped;
+}
+
+async function fetchInvoiceLinesById(source: InvoiceDbSource) {
+  try {
+    const rows = await querySource(source, DEFAULT_INVOICE_LINES_QUERY);
+    return groupLinesByInvoiceId(rows, 'usd');
+  } catch {
+    return new Map<string, AdminInvoiceLine[]>();
+  }
 }
 
 async function queryMysql(source: InvoiceDbSource, sql: string) {
@@ -232,11 +265,22 @@ async function fetchPlatformClientCount(source: InvoiceDbSource) {
 
 async function fetchSourceInvoices(source: InvoiceDbSource): Promise<InvoiceSourceResult> {
   try {
-    const [rows, platformClientCount] = await Promise.all([
+    const [rows, platformClientCount, linesByInvoiceId] = await Promise.all([
       querySource(source, source.query ?? DEFAULT_INVOICE_QUERY),
       fetchPlatformClientCount(source),
+      fetchInvoiceLinesById(source),
     ]);
-    const invoices = rows.map((row, index) => normalizeInvoice(row, source, index));
+    const invoices = rows.map((row, index) => {
+      const rowId = String(pickField(row, ['id', 'invoice_id', 'uuid']) ?? '');
+      const currency = String(pickField(row, ['currency']) ?? 'usd').toLowerCase();
+      const rawLines = linesByInvoiceId.get(rowId) ?? [];
+      const lines = rawLines.map((line) => ({
+        ...line,
+        baseAmountFormatted: formatCurrency(line.baseAmount, currency),
+        totalFormatted: formatCurrency(line.total, currency),
+      }));
+      return normalizeInvoice(row, source, index, lines);
+    });
 
     return {
       sourceId: source.id,

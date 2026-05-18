@@ -1,5 +1,7 @@
 'use client';
 
+import { Fragment, useState } from 'react';
+import { AdminInvoiceLinesTable } from '@/components/admin/AdminInvoiceLinesTable';
 import { useAdminInvoices } from '@/components/admin/AdminInvoiceProvider';
 
 function stateClass(state: string) {
@@ -18,6 +20,19 @@ function stateClass(state: string) {
 
 export function AdminBillingQueue() {
   const { loading, error, invoices, sources, configuredSourceCount, refresh } = useAdminInvoices();
+  const [expandedInvoices, setExpandedInvoices] = useState<Set<string>>(() => new Set());
+
+  function toggleInvoice(invoiceId: string) {
+    setExpandedInvoices((current) => {
+      const next = new Set(current);
+      if (next.has(invoiceId)) {
+        next.delete(invoiceId);
+      } else {
+        next.add(invoiceId);
+      }
+      return next;
+    });
+  }
 
   return (
     <div className="card">
@@ -54,10 +69,15 @@ export function AdminBillingQueue() {
         </p>
       ) : null}
 
+      <p className="small muted" style={{ marginTop: 0 }}>
+        Expand an invoice to view all line items.
+      </p>
+
       <div className="table-wrap">
         <table className="data-table">
           <thead>
             <tr>
+              <th style={{ width: 44 }} aria-label="Expand" />
               <th>Invoice #</th>
               <th>Title</th>
               <th>Client</th>
@@ -70,13 +90,13 @@ export function AdminBillingQueue() {
           <tbody>
             {loading ? (
               <tr>
-                <td colSpan={7}>Loading invoices from connected databases...</td>
+                <td colSpan={8}>Loading invoices from connected databases...</td>
               </tr>
             ) : null}
 
             {!loading && invoices.length === 0 ? (
               <tr>
-                <td colSpan={7}>
+                <td colSpan={8}>
                   {configuredSourceCount > 0
                     ? 'No rows returned from cic_platform_invoice.'
                     : 'Connect one or more invoice databases to populate this queue.'}
@@ -85,35 +105,68 @@ export function AdminBillingQueue() {
             ) : null}
 
             {!loading
-              ? invoices.map((row) => (
-                  <tr key={row.id}>
-                    <td>
-                      {row.stripeHostedUrl ? (
-                        <a href={row.stripeHostedUrl} target="_blank" rel="noreferrer">
-                          {row.invoiceNumber}
-                        </a>
-                      ) : (
-                        row.invoiceNumber
-                      )}
-                    </td>
-                    <td>{row.title}</td>
-                    <td>{row.sourceLabel}</td>
-                    <td>{row.dueDate || '—'}</td>
-                    <td>{row.amountFormatted}</td>
-                    <td>
-                      <span className={`status-pill ${stateClass(row.state)}`}>{row.state}</span>
-                    </td>
-                    <td>
-                      {row.stripeDashboardUrl ? (
-                        <a href={row.stripeDashboardUrl} target="_blank" rel="noreferrer" className="small">
-                          Dashboard
-                        </a>
-                      ) : (
-                        '—'
-                      )}
-                    </td>
-                  </tr>
-                ))
+              ? invoices.map((row) => {
+                  const expanded = expandedInvoices.has(row.id);
+
+                  return (
+                    <Fragment key={row.id}>
+                      <tr>
+                        <td>
+                          <button
+                            type="button"
+                            className="btn ghost admin-expand-btn"
+                            onClick={() => toggleInvoice(row.id)}
+                            aria-expanded={expanded}
+                            aria-label={
+                              expanded ? `Collapse ${row.invoiceNumber}` : `Expand ${row.invoiceNumber}`
+                            }
+                          >
+                            {expanded ? '−' : '+'}
+                          </button>
+                        </td>
+                        <td>
+                          {row.stripeHostedUrl ? (
+                            <a href={row.stripeHostedUrl} target="_blank" rel="noreferrer">
+                              {row.invoiceNumber}
+                            </a>
+                          ) : (
+                            row.invoiceNumber
+                          )}
+                        </td>
+                        <td>{row.title}</td>
+                        <td>{row.sourceLabel}</td>
+                        <td>{row.dueDate || '—'}</td>
+                        <td>{row.amountFormatted}</td>
+                        <td>
+                          <span className={`status-pill ${stateClass(row.state)}`}>{row.state}</span>
+                        </td>
+                        <td>
+                          {row.stripeDashboardUrl ? (
+                            <a href={row.stripeDashboardUrl} target="_blank" rel="noreferrer" className="small">
+                              Dashboard
+                            </a>
+                          ) : (
+                            '—'
+                          )}
+                        </td>
+                      </tr>
+                      {expanded ? (
+                        <tr className="admin-expand-row">
+                          <td colSpan={8}>
+                            <div className="admin-expand-panel">
+                              {row.notes ? (
+                                <p className="small muted" style={{ marginTop: 0 }}>
+                                  Notes: {row.notes}
+                                </p>
+                              ) : null}
+                              <AdminInvoiceLinesTable lines={row.lines} />
+                            </div>
+                          </td>
+                        </tr>
+                      ) : null}
+                    </Fragment>
+                  );
+                })
               : null}
           </tbody>
         </table>
