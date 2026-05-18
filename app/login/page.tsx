@@ -1,11 +1,11 @@
 'use client';
 
-import { FormEvent, useState } from 'react';
-import { useEffect } from 'react';
+import { FormEvent, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Navbar } from '@/components/Navbar';
 import { Footer } from '@/components/Footer';
 import { BrandLockup } from '@/components/BrandLockup';
+import { isAdminAccount, readClientSession, writeClientSession } from '@/lib/auth';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -14,11 +14,15 @@ export default function LoginPage() {
   const [defaultEmail, setDefaultEmail] = useState('');
 
   useEffect(() => {
-    const value = new URLSearchParams(window.location.search).get('email') ?? '';
-    setDefaultEmail(value);
-  }, []);
+    const params = new URLSearchParams(window.location.search);
+    setDefaultEmail(params.get('email') ?? '');
 
-  function onSubmit(event: FormEvent<HTMLFormElement>) {
+    if (isAdminAccount(readClientSession())) {
+      router.replace(params.get('next') ?? '/admin');
+    }
+  }, [router]);
+
+  async function onSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setError('');
     setLoading(true);
@@ -33,18 +37,34 @@ export default function LoginPage() {
       return;
     }
 
-    const packageName = String(form.get('package') ?? 'pi360');
+    try {
+      const response = await fetch('/api/auth/session', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password }),
+      });
+      const payload = (await response.json()) as {
+        ok?: boolean;
+        error?: string;
+        account?: ReturnType<typeof readClientSession>;
+      };
 
-    const account = {
-      email,
-      package: packageName,
-      role: 'client',
-      loggedInAt: new Date().toISOString(),
-    };
+      if (!response.ok || !payload.ok || !payload.account) {
+        throw new Error(payload.error ?? 'Invalid email or password. Check your credentials and try again.');
+      }
 
-    localStorage.setItem('careaxis_account', JSON.stringify(account));
-    setLoading(false);
-    router.push('/portal');
+      writeClientSession(payload.account);
+      const next = new URLSearchParams(window.location.search).get('next') ?? '/admin';
+      router.push(next);
+    } catch (loginError) {
+      setError(
+        loginError instanceof Error
+          ? loginError.message
+          : 'Invalid email or password. Check your credentials and try again.',
+      );
+    } finally {
+      setLoading(false);
+    }
   }
 
   return (
@@ -73,17 +93,6 @@ export default function LoginPage() {
                 <div className="form-field form-field-full">
                   <label htmlFor="password">Password</label>
                   <input id="password" name="password" type="password" required placeholder="••••••••" />
-                </div>
-
-                <div className="form-field form-field-full">
-                  <label htmlFor="package">Package</label>
-                  <select id="package" name="package" defaultValue="pi360">
-                    <option value="pi360">Care Axis PI360</option>
-                    <option value="dpc360">Care Axis DPC360</option>
-                    <option value="practice360">Care Axis Practice360</option>
-                    <option value="ortho360">Care Axis Ortho360</option>
-                    <option value="pain360">Care Axis Pain360</option>
-                  </select>
                 </div>
 
                 <div className="form-field form-field-full">

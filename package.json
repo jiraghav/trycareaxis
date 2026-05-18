@@ -11,15 +11,18 @@
     "test:visual:update": "playwright test --update-snapshots"
   },
   "dependencies": {
+    "mysql2": "^3.22.3",
     "next": "latest",
+    "pg": "^8.20.0",
     "react": "latest",
     "react-dom": "latest"
   },
   "devDependencies": {
     "@playwright/test": "^1.54.0",
-    "typescript": "^5.8.3",
     "@types/node": "^22.14.0",
+    "@types/pg": "^8.20.0",
     "@types/react": "^19.1.2",
-    "@types/react-dom": "^19.1.2"
+    "@types/react-dom": "^19.1.2",
+    "typescript": "^5.8.3"
   }
 }

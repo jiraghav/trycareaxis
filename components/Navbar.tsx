@@ -1,10 +1,47 @@
 "use client";
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { Logo } from '@/components/Logo';
+import { clearClientSession, readClientSession } from '@/lib/auth';
 
 export function Navbar() {
+  const router = useRouter();
   const [open, setOpen] = useState(false);
+  const [isAuthed, setIsAuthed] = useState(false);
+
+  useEffect(() => {
+    setIsAuthed(readClientSession() !== null);
+  }, []);
+
+  async function handleLogout() {
+    try {
+      await fetch('/api/auth/session', { method: 'DELETE' });
+    } catch {
+      // Clear local session even if the cookie request fails.
+    }
+
+    clearClientSession();
+    setIsAuthed(false);
+    setOpen(false);
+    router.push('/login');
+  }
+
+  const authControl = isAuthed ? (
+    <button type="button" className="nav-auth-link" onClick={handleLogout}>
+      Logout
+    </button>
+  ) : (
+    <a href="/login">Login</a>
+  );
+
+  const mobileAuthControl = isAuthed ? (
+    <button type="button" className="nav-link-utility nav-auth-link" onClick={handleLogout}>
+      Logout
+    </button>
+  ) : (
+    <a className="nav-link-utility" href="/login">Login</a>
+  );
 
   return (
     <header className="nav">
@@ -21,16 +58,14 @@ export function Navbar() {
           <a href="/about">About</a>
           <a href="/contact">Contact</a>
           <a href="/live-demo">Live Demo</a>
-          <a className="nav-link-utility" href="/login">Login</a>
-          <a className="nav-link-utility" href="/portal">Portal</a>
-          <a className="nav-link-utility" href="/admin">Admin</a>
+          {mobileAuthControl}
+          {isAuthed ? <a className="nav-link-utility" href="/admin">Admin</a> : null}
         </nav>
 
         <div className="nav-cta">
           <div className="nav-utility">
-            <a href="/login">Login</a>
-            <a href="/portal">Portal</a>
-            <a href="/admin">Admin</a>
+            {authControl}
+            {isAuthed ? <a href="/admin">Admin</a> : null}
           </div>
           <a className="btn ghost" href="/onboarding" data-track="nav_get_quote">Start Intake</a>
           <a className="btn primary" href="/demo" data-track="nav_book_demo">Book a Demo</a>

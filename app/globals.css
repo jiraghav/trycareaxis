@@ -414,12 +414,25 @@ img {
   margin-right: 4px;
 }
 
-.nav-utility a {
+.nav-utility a,
+.nav-auth-link {
   font-size: 12px;
   letter-spacing: 0.05em;
   text-transform: uppercase;
   color: #c8ddf2;
   opacity: 0.9;
+}
+
+.nav-auth-link {
+  background: transparent;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.nav-auth-link:hover {
+  opacity: 1;
 }
 
 .mobile-menu-toggle {

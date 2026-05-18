@@ -6,13 +6,11 @@ import { Navbar } from '@/components/Navbar';
 import { Footer } from '@/components/Footer';
 import { BrandLockup } from '@/components/BrandLockup';
 import type { VerticalKey } from '@/components/brand';
-
-type Account = {
-  email: string;
-  package: VerticalKey;
-  role: string;
-  loggedInAt: string;
-};
+import {
+  clearClientSession,
+  readClientSession,
+  type ClientAccount,
+} from '@/lib/auth';
 
 const packageLabel: Record<VerticalKey, string> = {
   pi360: 'Care Axis PI360',
@@ -32,20 +30,10 @@ const packagePrice: Record<VerticalKey, string> = {
 
 export default function PortalPage() {
   const router = useRouter();
-  const [account, setAccount] = useState<Account | null>(null);
+  const [account, setAccount] = useState<ClientAccount | null>(null);
 
   useEffect(() => {
-    const raw = localStorage.getItem('careaxis_account');
-    if (!raw) {
-      return;
-    }
-
-    try {
-      const parsed = JSON.parse(raw) as Account;
-      setAccount(parsed);
-    } catch {
-      setAccount(null);
-    }
+    setAccount(readClientSession());
   }, []);
 
   const billingSummary = useMemo(() => {
@@ -63,7 +51,7 @@ export default function PortalPage() {
   }, [account]);
 
   function logout() {
-    localStorage.removeItem('careaxis_account');
+    clearClientSession();
     router.push('/login');
   }
 
