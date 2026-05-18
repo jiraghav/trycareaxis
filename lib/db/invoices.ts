@@ -190,7 +190,11 @@ function normalizeInvoice(row: RawRow, source: InvoiceDbSource, index: number): 
 }
 
 async function queryMysql(source: InvoiceDbSource, sql: string) {
-  const connection = await mysql.createConnection(resolveMysqlConfig(source));
+  const config = resolveMysqlConfig(source);
+  const connection =
+    typeof config === 'string'
+      ? await mysql.createConnection(config)
+      : await mysql.createConnection(config);
   try {
     const [rows] = await connection.query(sql);
     return Array.isArray(rows) ? (rows as RawRow[]) : [];

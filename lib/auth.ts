@@ -75,7 +75,9 @@ export function clearClientSession() {
   localStorage.removeItem(CLIENT_SESSION_KEY);
 }
 
-export function isAdminAccount(account: ClientAccount | null) {
+export function isAdminAccount(
+  account: Pick<ClientAccount, 'role'> | null | undefined,
+) {
   return account?.role === 'admin';
 }
 
