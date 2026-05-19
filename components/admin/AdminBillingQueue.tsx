@@ -1,6 +1,8 @@
 'use client';
 
-import { Fragment, useState } from 'react';
+import { Fragment, useMemo, useState } from 'react';
+import { AdminInvoiceActions } from '@/components/admin/AdminInvoiceActions';
+import { AdminInvoiceEditor } from '@/components/admin/AdminInvoiceEditor';
 import { AdminInvoiceLinesTable } from '@/components/admin/AdminInvoiceLinesTable';
 import { useAdminInvoices } from '@/components/admin/AdminInvoiceProvider';
 
@@ -18,9 +20,21 @@ function stateClass(state: string) {
   return 'pending';
 }
 
+type EditorTarget = {
+  sourceId: string;
+  invoiceId?: number;
+  lockSource?: boolean;
+};
+
 export function AdminBillingQueue() {
   const { loading, error, invoices, sources, configuredSourceCount, refresh } = useAdminInvoices();
   const [expandedInvoices, setExpandedInvoices] = useState<Set<string>>(() => new Set());
+  const [editorTarget, setEditorTarget] = useState<EditorTarget | null>(null);
+
+  const sourceOptions = useMemo(
+    () => sources.map((source) => ({ id: source.sourceId, label: source.sourceLabel })),
+    [sources],
+  );
 
   function toggleInvoice(invoiceId: string) {
     setExpandedInvoices((current) => {
@@ -38,9 +52,11 @@ export function AdminBillingQueue() {
     <div className="card">
       <div className="section-header-row" style={{ marginBottom: 12 }}>
         <h2 style={{ margin: 0 }}>Billing Queue</h2>
-        <button className="btn ghost" type="button" onClick={refresh} disabled={loading}>
-          {loading ? 'Refreshing...' : 'Refresh'}
-        </button>
+        <div className="btn-row">
+          <button className="btn ghost" type="button" onClick={refresh} disabled={loading}>
+            {loading ? 'Refreshing...' : 'Refresh'}
+          </button>
+        </div>
       </div>
 
       {configuredSourceCount > 0 ? (
@@ -85,18 +101,19 @@ export function AdminBillingQueue() {
               <th>Amount</th>
               <th>Status</th>
               <th>Stripe</th>
+              <th>Actions</th>
             </tr>
           </thead>
           <tbody>
             {loading ? (
               <tr>
-                <td colSpan={8}>Loading invoices from connected databases...</td>
+                <td colSpan={9}>Loading invoices from connected databases...</td>
               </tr>
             ) : null}
 
             {!loading && invoices.length === 0 ? (
               <tr>
-                <td colSpan={8}>
+                <td colSpan={9}>
                   {configuredSourceCount > 0
                     ? 'No rows returned from cic_platform_invoice.'
                     : 'Connect one or more invoice databases to populate this queue.'}
@@ -141,18 +158,27 @@ export function AdminBillingQueue() {
                           <span className={`status-pill ${stateClass(row.state)}`}>{row.state}</span>
                         </td>
                         <td>
-                          {row.stripeDashboardUrl ? (
-                            <a href={row.stripeDashboardUrl} target="_blank" rel="noreferrer" className="small">
-                              Dashboard
-                            </a>
+                          {row.stripeInvoiceId ? (
+                            <span className="small muted">Linked</span>
                           ) : (
                             '—'
                           )}
                         </td>
+                        <td>
+                          <AdminInvoiceActions
+                            invoice={row}
+                            onOpenEditor={() =>
+                              setEditorTarget({
+                                sourceId: row.sourceId,
+                                invoiceId: Number(row.platformInvoiceId) || undefined,
+                              })
+                            }
+                          />
+                        </td>
                       </tr>
                       {expanded ? (
                         <tr className="admin-expand-row">
-                          <td colSpan={8}>
+                          <td colSpan={9}>
                             <div className="admin-expand-panel">
                               {row.notes ? (
                                 <p className="small muted" style={{ marginTop: 0 }}>
@@ -183,6 +209,21 @@ export function AdminBillingQueue() {
             ))}
         </div>
       ) : null}
+
+      {editorTarget ? (
+        <AdminInvoiceEditor
+          open
+          sourceId={editorTarget.sourceId}
+          sourceOptions={sourceOptions}
+          invoiceId={editorTarget.invoiceId}
+          lockSource={Boolean(editorTarget.lockSource)}
+          onClose={() => setEditorTarget(null)}
+          onSaved={() => {
+            refresh();
+          }}
+        />
+      ) : null}
+
     </div>
   );
 }

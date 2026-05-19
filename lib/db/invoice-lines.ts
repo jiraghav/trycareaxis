@@ -30,6 +30,13 @@ function normalizeAmount(value: unknown) {
   return Number.isFinite(parsed) ? parsed : 0;
 }
 
+export function roundMoney(amount: number) {
+  if (!Number.isFinite(amount)) {
+    return 0;
+  }
+  return Math.round(amount * 100) / 100;
+}
+
 export function formatCurrency(amount: number, currency = 'USD') {
   const code = currency.trim().toUpperCase() || 'USD';
   try {

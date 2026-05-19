@@ -8,6 +8,10 @@ export type InvoiceDbSource = {
   password?: string;
   database?: string;
   query?: string;
+  /** OpenEMR web root URL, e.g. https://clinic.example.com/openemr */
+  openemrBaseUrl?: string;
+  /** OpenEMR site id for webhook query param (default: default). */
+  openemrSiteId?: string;
 };
 
 export type AdminInvoiceLine = {
@@ -43,6 +47,7 @@ export type AdminInvoice = {
   state: string;
   stripeHostedUrl: string;
   stripeDashboardUrl: string;
+  stripeInvoiceId: string;
   sourceId: string;
   sourceLabel: string;
   lines: AdminInvoiceLine[];

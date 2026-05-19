@@ -57,6 +57,10 @@ export const DEFAULT_PLATFORM_CLIENTS_COUNT_QUERY = `
   WHERE user_id IS NOT NULL AND user_id > 0
 `.trim();
 
+export function getInvoiceDbSourceById(id: string) {
+  return getInvoiceDbSources().find((source) => source.id === id) ?? null;
+}
+
 export function getInvoiceDbSources(): InvoiceDbSource[] {
   const raw = process.env.CARE_AXIS_INVOICE_DB_SOURCES?.trim();
   if (!raw) {
@@ -92,7 +96,8 @@ export function getInvoiceDbSources(): InvoiceDbSource[] {
         typeof record.query === 'string' && record.query.trim()
           ? record.query.trim()
           : undefined;
-
+      const openemrBaseUrl = String(record.openemrBaseUrl ?? '').trim() || undefined;
+      const openemrSiteId = String(record.openemrSiteId ?? '').trim() || undefined;
       const hasUrl = Boolean(url);
       const hasDiscreteConfig = Boolean(host && user && database);
 
@@ -110,6 +115,8 @@ export function getInvoiceDbSources(): InvoiceDbSource[] {
         password,
         database,
         query,
+        openemrBaseUrl,
+        openemrSiteId,
       });
     }
 

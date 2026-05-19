@@ -1,6 +1,9 @@
 'use client';
 
 import { Fragment, useMemo, useState } from 'react';
+import { AdminInvoiceEditor } from '@/components/admin/AdminInvoiceEditor';
+import { AdminInvoiceSettings } from '@/components/admin/AdminInvoiceSettings';
+import { AdminInvoiceActions } from '@/components/admin/AdminInvoiceActions';
 import { AdminInvoiceLinesTable } from '@/components/admin/AdminInvoiceLinesTable';
 import { useAdminInvoices } from '@/components/admin/AdminInvoiceProvider';
 import type { AdminInvoice } from '@/lib/db/types';
@@ -42,10 +45,12 @@ function InvoiceBlock({
   invoice,
   expanded,
   onToggle,
+  onEdit,
 }: {
   invoice: AdminInvoice;
   expanded: boolean;
   onToggle: () => void;
+  onEdit: () => void;
 }) {
   const lineCount = invoice.lines.length;
 
@@ -72,7 +77,9 @@ function InvoiceBlock({
             )}
           </strong>
           <span className="small muted"> · {invoice.title}</span>
-          {invoice.client !== invoice.sourceLabel ? (
+          {invoice.client &&
+          invoice.client !== invoice.sourceLabel &&
+          invoice.client.toLowerCase() !== 'unknown client' ? (
             <span className="small muted"> · {invoice.client}</span>
           ) : null}
           {!expanded && lineCount > 0 ? (
@@ -83,6 +90,7 @@ function InvoiceBlock({
           <span>{invoice.dueDate || '—'}</span>
           <span className={`status-pill ${statusClass(invoice.state)}`}>{invoice.state}</span>
           <strong>{invoice.amountFormatted}</strong>
+          <AdminInvoiceActions invoice={invoice} onOpenEditor={onEdit} />
         </div>
       </div>
       {expanded ? (
@@ -99,10 +107,24 @@ function InvoiceBlock({
   );
 }
 
+type EditorTarget = {
+  sourceId: string;
+  invoiceId?: number;
+  lockSource: boolean;
+};
+
 export function AdminClientOverview() {
-  const { loading, clients, invoices, configuredSourceCount, error } = useAdminInvoices();
+  const { loading, clients, invoices, sources, configuredSourceCount, error, refresh } =
+    useAdminInvoices();
   const [expandedClients, setExpandedClients] = useState<Set<string>>(() => new Set());
   const [expandedInvoices, setExpandedInvoices] = useState<Set<string>>(() => new Set());
+  const [editorTarget, setEditorTarget] = useState<EditorTarget | null>(null);
+  const [settingsSourceId, setSettingsSourceId] = useState<string | null>(null);
+
+  const sourceOptions = useMemo(
+    () => sources.map((source) => ({ id: source.sourceId, label: source.sourceLabel })),
+    [sources],
+  );
 
   const invoicesBySource = useMemo(() => {
     const map = new Map<string, AdminInvoice[]>();
@@ -157,7 +179,8 @@ export function AdminClientOverview() {
     <div className="container card">
       <h2 style={{ marginTop: 0 }}>Client Overview</h2>
       <p className="small muted" style={{ marginTop: 0 }}>
-        Expand a client to view invoices, then expand an invoice to see line items.
+        Expand a client to view invoices, then expand an invoice to see line items. Use Add invoice or
+        Invoice defaults per instance.
       </p>
 
       {error ? (
@@ -177,18 +200,19 @@ export function AdminClientOverview() {
               <th>Status</th>
               <th>Last Invoice</th>
               <th>Outstanding</th>
+              <th className="admin-table-actions">Actions</th>
             </tr>
           </thead>
           <tbody>
             {loading ? (
               <tr>
-                <td colSpan={7}>Loading client billing data...</td>
+                <td colSpan={8}>Loading client billing data...</td>
               </tr>
             ) : null}
 
             {!loading && clients.length === 0 ? (
               <tr>
-                <td colSpan={7}>
+                <td colSpan={8}>
                   {configuredSourceCount > 0
                     ? 'No platform databases connected.'
                     : 'Connect a database in .env.local to load client overview.'}
@@ -221,14 +245,50 @@ export function AdminClientOverview() {
                         </td>
                         <td>{row.lastInvoiceDate}</td>
                         <td>{row.outstanding}</td>
+                        <td className="admin-table-actions">
+                          <div className="admin-table-actions-row">
+                            <button
+                              type="button"
+                              className="btn primary admin-btn-compact"
+                              onClick={() =>
+                                setEditorTarget({
+                                  sourceId: row.id,
+                                  lockSource: true,
+                                })
+                              }
+                            >
+                              Add invoice
+                            </button>
+                            <button
+                              type="button"
+                              className="btn secondary admin-btn-compact"
+                              onClick={() => setSettingsSourceId(row.id)}
+                            >
+                              Invoice defaults
+                            </button>
+                          </div>
+                        </td>
                       </tr>
                       {expanded ? (
                         <tr className="admin-expand-row">
-                          <td colSpan={7}>
+                          <td colSpan={8}>
                             <div className="admin-expand-panel">
                               {clientInvoices.length === 0 ? (
                                 <p className="small muted" style={{ margin: 0 }}>
-                                  No invoices for this client.
+                                  No invoices for this client.{' '}
+                                  <button
+                                    type="button"
+                                    className="btn ghost admin-btn-compact"
+                                    style={{ marginLeft: 6 }}
+                                    onClick={() =>
+                                      setEditorTarget({
+                                        sourceId: row.id,
+                                        lockSource: true,
+                                      })
+                                    }
+                                  >
+                                    Add first invoice
+                                  </button>
                                 </p>
                               ) : (
                                 clientInvoices.map((invoice) => (
@@ -237,6 +297,13 @@ export function AdminClientOverview() {
                                     invoice={invoice}
                                     expanded={expandedInvoices.has(invoice.id)}
                                     onToggle={() => toggleInvoice(invoice.id)}
+                                    onEdit={() =>
+                                      setEditorTarget({
+                                        sourceId: row.id,
+                                        invoiceId: Number(invoice.platformInvoiceId) || undefined,
+                                        lockSource: true,
+                                      })
+                                    }
                                   />
                                 ))
                               )}
@@ -251,6 +318,27 @@ export function AdminClientOverview() {
           </tbody>
         </table>
       </div>
+
+      {editorTarget ? (
+        <AdminInvoiceEditor
+          open
+          sourceId={editorTarget.sourceId}
+          sourceOptions={sourceOptions}
+          invoiceId={editorTarget.invoiceId}
+          lockSource={editorTarget.lockSource}
+          onClose={() => setEditorTarget(null)}
+          onSaved={() => {
+            refresh();
+          }}
+        />
+      ) : null}
+
+      <AdminInvoiceSettings
+        open={settingsSourceId !== null}
+        sourceOptions={sourceOptions}
+        initialSourceId={settingsSourceId ?? ''}
+        onClose={() => setSettingsSourceId(null)}
+      />
     </div>
   );
 }

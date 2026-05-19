@@ -122,7 +122,7 @@ function normalizeInvoice(
   const platformInvoiceId = String(rowId ?? '');
   const userId = String(pickField(row, ['user_id', 'userid', 'account_id']) ?? '');
   const title = String(pickField(row, ['title', 'invoice_title', 'description']) ?? 'Platform invoice');
-  const notes = String(pickField(row, ['notes', 'internal_notes']) ?? '');
+  const notes = String(pickField(row, ['notes']) ?? '');
   const invoiceNumber = String(
     pickField(row, [
       'stripe_invoice_number',
@@ -142,7 +142,7 @@ function normalizeInvoice(
       ? organization
       : userId
         ? `User ${userId}`
-        : 'Unknown client';
+        : '';
   const dueDateValue = formatDisplayDate(
     pickField(row, ['date_created', 'created_at', 'due_date', 'due', 'due_at', 'invoice_due_date']),
   );
@@ -165,6 +165,7 @@ function normalizeInvoice(
   const stripeDashboardUrl = String(
     pickField(row, ['stripe_dashboard_url', 'dashboard_url']) ?? '',
   );
+  const stripeInvoiceId = String(pickField(row, ['stripe_invoice_id']) ?? '');
 
   return {
     id: `${source.id}:${rowId ?? invoiceNumber}:${index}`,
@@ -184,6 +185,7 @@ function normalizeInvoice(
     state,
     stripeHostedUrl,
     stripeDashboardUrl,
+    stripeInvoiceId,
     sourceId: source.id,
     sourceLabel: source.label,
     lines,

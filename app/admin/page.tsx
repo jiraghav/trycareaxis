@@ -63,6 +63,10 @@ export default function AdminPage() {
                 <li>Track onboarding completion and required migration files</li>
                 <li>Flag at-risk accounts for intervention and call scheduling</li>
               </ul>
+              <p className="small muted">
+                Use <strong>Invoice defaults</strong> on each client row in Client Overview to edit monthly
+                fees, upcharge percentages, and Stripe settings per EMR database.
+              </p>
               <div className="btn-row">
                 <a className="btn primary" href="/pricing">
                   Update package pricing
