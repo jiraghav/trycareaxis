@@ -26,6 +26,8 @@ const emptyDefaults: PlatformInvoiceDefaultsView = {
   otherCharges: 0,
   openaiUpchargePercent: 0,
   smsUpchargePercent: 0,
+  openaiUpchargeFlat: 0,
+  smsUpchargeFlat: 0,
   stripeDaysUntilDue: 30,
   stripeCurrency: 'usd',
   hasStripeSecret: false,
@@ -137,6 +139,8 @@ export function AdminInvoiceSettings({
           otherCharges: defaults.otherCharges,
           openaiUpchargePercent: defaults.openaiUpchargePercent,
           smsUpchargePercent: defaults.smsUpchargePercent,
+          openaiUpchargeFlat: defaults.openaiUpchargeFlat,
+          smsUpchargeFlat: defaults.smsUpchargeFlat,
           stripeDaysUntilDue: defaults.stripeDaysUntilDue,
         }),
       });
@@ -237,36 +241,80 @@ export function AdminInvoiceSettings({
                   />
                 </div>
 
-                <div className="form-group">
-                  <label htmlFor="admin-default-openai-upcharge">Default OpenAI / AI upcharge %</label>
-                  <input
-                    id="admin-default-openai-upcharge"
-                    type="number"
-                    step="0.0001"
-                    min={0}
-                    className="form-control"
-                    value={defaults.openaiUpchargePercent}
-                    onChange={(event) =>
-                      updateDefaults({ openaiUpchargePercent: Number(event.target.value) })
-                    }
-                    disabled={saving}
-                  />
+                <div className="form-group form-group-full">
+                  <p className="small muted" style={{ margin: '0 0 8px' }}>
+                    OpenAI / AI markup (flat + % on usage base)
+                  </p>
+                  <div className="admin-form-grid">
+                    <div className="form-group">
+                      <label htmlFor="admin-default-openai-flat">Flat rate ($)</label>
+                      <input
+                        id="admin-default-openai-flat"
+                        type="number"
+                        step="0.01"
+                        min={0}
+                        className="form-control"
+                        value={defaults.openaiUpchargeFlat}
+                        onChange={(event) =>
+                          updateDefaults({ openaiUpchargeFlat: Number(event.target.value) })
+                        }
+                        disabled={saving}
+                      />
+                    </div>
+                    <div className="form-group">
+                      <label htmlFor="admin-default-openai-upcharge">Upcharge %</label>
+                      <input
+                        id="admin-default-openai-upcharge"
+                        type="number"
+                        step="0.0001"
+                        min={0}
+                        className="form-control"
+                        value={defaults.openaiUpchargePercent}
+                        onChange={(event) =>
+                          updateDefaults({ openaiUpchargePercent: Number(event.target.value) })
+                        }
+                        disabled={saving}
+                      />
+                    </div>
+                  </div>
                 </div>
 
-                <div className="form-group">
-                  <label htmlFor="admin-default-sms-upcharge">Default SMS / Text upcharge %</label>
-                  <input
-                    id="admin-default-sms-upcharge"
-                    type="number"
-                    step="0.0001"
-                    min={0}
-                    className="form-control"
-                    value={defaults.smsUpchargePercent}
-                    onChange={(event) =>
-                      updateDefaults({ smsUpchargePercent: Number(event.target.value) })
-                    }
-                    disabled={saving}
-                  />
+                <div className="form-group form-group-full">
+                  <p className="small muted" style={{ margin: '0 0 8px' }}>
+                    SMS / Text markup (flat + % on usage base)
+                  </p>
+                  <div className="admin-form-grid">
+                    <div className="form-group">
+                      <label htmlFor="admin-default-sms-flat">Flat rate ($)</label>
+                      <input
+                        id="admin-default-sms-flat"
+                        type="number"
+                        step="0.01"
+                        min={0}
+                        className="form-control"
+                        value={defaults.smsUpchargeFlat}
+                        onChange={(event) =>
+                          updateDefaults({ smsUpchargeFlat: Number(event.target.value) })
+                        }
+                        disabled={saving}
+                      />
+                    </div>
+                    <div className="form-group">
+                      <label htmlFor="admin-default-sms-upcharge">Upcharge %</label>
+                      <input
+                        id="admin-default-sms-upcharge"
+                        type="number"
+                        step="0.0001"
+                        min={0}
+                        className="form-control"
+                        value={defaults.smsUpchargePercent}
+                        onChange={(event) =>
+                          updateDefaults({ smsUpchargePercent: Number(event.target.value) })
+                        }
+                        disabled={saving}
+                      />
+                    </div>
+                  </div>
                 </div>
 
                 <div className="form-group">

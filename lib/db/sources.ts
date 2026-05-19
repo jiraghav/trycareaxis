@@ -23,9 +23,10 @@ export const DEFAULT_INVOICE_QUERY = `
     SELECT
       invoice_id,
       SUM(
-        base_amount * qty * CASE
-          WHEN line_code IN ('openai', 'sms', 'custom') THEN (1 + (upcharge_percent / 100))
-          ELSE 1
+        CASE
+          WHEN line_code IN ('openai', 'sms', 'custom') THEN
+            base_amount * qty * (1 + (upcharge_percent / 100)) + COALESCE(upcharge_flat, 0)
+          ELSE base_amount * qty
         END
       ) AS amount
     FROM cic_platform_invoice_line
@@ -44,6 +45,7 @@ export const DEFAULT_INVOICE_LINES_QUERY = `
     l.description,
     l.base_amount,
     l.upcharge_percent,
+    l.upcharge_flat,
     l.usage_month,
     l.qty
   FROM cic_platform_invoice_line l

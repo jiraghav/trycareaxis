@@ -23,6 +23,7 @@ export type AdminInvoiceLine = {
   baseAmount: number;
   baseAmountFormatted: string;
   upchargePercent: number;
+  upchargeFlat: number;
   usageMonth: string;
   qty: number;
   total: number;

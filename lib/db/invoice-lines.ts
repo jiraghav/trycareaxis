@@ -76,12 +76,14 @@ export function computeLineTotal(
   baseAmount: number,
   upchargePercent: number,
   qty: number,
+  upchargeFlat = 0,
 ) {
   const qtySafe = qty > 0 ? qty : 1;
-  const mult = ['openai', 'sms', 'custom'].includes(lineCode)
-    ? 1 + upchargePercent / 100
-    : 1;
-  return baseAmount * qtySafe * mult;
+  const base = baseAmount * qtySafe;
+  if (!['openai', 'sms', 'custom'].includes(lineCode)) {
+    return roundMoney(base);
+  }
+  return roundMoney(base * (1 + upchargePercent / 100) + upchargeFlat);
 }
 
 export function normalizeInvoiceLine(row: RawRow, currency: string): AdminInvoiceLine {
@@ -89,9 +91,10 @@ export function normalizeInvoiceLine(row: RawRow, currency: string): AdminInvoic
   const lineCode = String(pickField(row, ['line_code', 'code']) ?? 'custom');
   const baseAmount = normalizeAmount(pickField(row, ['base_amount', 'amount']));
   const upchargePercent = normalizeAmount(pickField(row, ['upcharge_percent', 'upcharge']));
+  const upchargeFlat = normalizeAmount(pickField(row, ['upcharge_flat']));
   const qty = normalizeAmount(pickField(row, ['qty', 'quantity']));
   const qtySafe = qty > 0 ? qty : 1;
-  const total = computeLineTotal(lineCode, baseAmount, upchargePercent, qtySafe);
+  const total = computeLineTotal(lineCode, baseAmount, upchargePercent, qtySafe, upchargeFlat);
 
   return {
     id: lineId,
@@ -102,6 +105,7 @@ export function normalizeInvoiceLine(row: RawRow, currency: string): AdminInvoic
     baseAmount,
     baseAmountFormatted: formatCurrency(baseAmount, currency),
     upchargePercent,
+    upchargeFlat,
     usageMonth: String(pickField(row, ['usage_month']) ?? ''),
     qty: qtySafe,
     total,

@@ -14,7 +14,6 @@ import {
 
 } from '@/lib/platform-invoice/defaults';
 
-import { resolveUpchargePercent } from '@/lib/platform-invoice/lines';
 
 import type {
 
@@ -37,6 +36,30 @@ async function ensureInvoiceTables(source: InvoiceDbSource) {
     throw new Error('Platform invoice tables are missing on this database.');
 
   }
+
+  await ensureLineUpchargeFlatColumn(source);
+
+}
+
+
+
+async function ensureLineUpchargeFlatColumn(source: InvoiceDbSource) {
+
+  const columns = await querySource(source, "SHOW COLUMNS FROM cic_platform_invoice_line LIKE 'upcharge_flat'");
+
+  if (columns.length) {
+
+    return;
+
+  }
+
+  await executeSource(
+
+    source,
+
+    'ALTER TABLE cic_platform_invoice_line ADD COLUMN upcharge_flat decimal(12,2) NOT NULL DEFAULT 0.00 AFTER upcharge_percent',
+
+  );
 
 }
 
@@ -220,7 +243,7 @@ export async function loadInvoiceEditor(source: InvoiceDbSource, invoiceId: numb
 
     source,
 
-    `SELECT line_code, sort_order, description, base_amount, upcharge_percent, usage_month, qty
+    `SELECT line_code, sort_order, description, base_amount, upcharge_percent, upcharge_flat, usage_month, qty
 
      FROM cic_platform_invoice_line
 
@@ -272,6 +295,8 @@ export async function loadInvoiceEditor(source: InvoiceDbSource, invoiceId: numb
 
         upchargePercent: Number(row.upcharge_percent ?? 0),
 
+        upchargeFlat: Number(row.upcharge_flat ?? 0),
+
         usageMonth: row.usage_month ? String(row.usage_month) : null,
 
         qty: Number(row.qty ?? 1),
@@ -312,7 +337,9 @@ async function persistLines(
 
 
 
-    const pct = resolveUpchargePercent(line.lineCode, line.upchargePercent, settings);
+    const pct = Math.max(0, line.upchargePercent);
+
+    const flat = Math.max(0, line.upchargeFlat ?? 0);
 
     const qty = line.qty > 0 ? line.qty : 1;
 
@@ -324,9 +351,9 @@ async function persistLines(
 
       `INSERT INTO cic_platform_invoice_line
 
-        (invoice_id, line_code, sort_order, description, base_amount, upcharge_percent, usage_month, qty)
+        (invoice_id, line_code, sort_order, description, base_amount, upcharge_percent, upcharge_flat, usage_month, qty)
 
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
 
       [
 
@@ -341,6 +368,8 @@ async function persistLines(
         line.baseAmount,
 
         pct,
+
+        flat,
 
         line.usageMonth,
 

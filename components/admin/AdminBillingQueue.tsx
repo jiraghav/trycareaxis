@@ -185,7 +185,7 @@ export function AdminBillingQueue() {
                                   Notes: {row.notes}
                                 </p>
                               ) : null}
-                              <AdminInvoiceLinesTable lines={row.lines} />
+                              <AdminInvoiceLinesTable lines={row.lines} currency={row.currency} />
                             </div>
                           </td>
                         </tr>

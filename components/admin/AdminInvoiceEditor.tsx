@@ -2,9 +2,16 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { computeLineTotal, formatCurrency, roundMoney } from '@/lib/db/invoice-lines';
+import { formatCurrency, roundMoney } from '@/lib/db/invoice-lines';
 import { AdminInvoiceViewLinks } from '@/components/admin/AdminInvoiceActions';
 import { formatUsageMonthLabel } from '@/lib/platform-invoice/format';
+import {
+  amountWithUpcharge,
+  defaultUpchargeFlat,
+  defaultUpchargePercent,
+  formatUpchargeLabelFromValues,
+  lineTotalFromParts,
+} from '@/lib/platform-invoice/pricing';
 import type {
   PlatformInvoiceEditorLine,
   PlatformInvoiceEditorState,
@@ -53,43 +60,15 @@ function defaultUsageMonth(usageMonths: string[]) {
   return usageMonths.includes(target) ? target : usageMonths[0];
 }
 
-function resolvedUpchargePercent(
-  line: PlatformInvoiceEditorLine,
-  settings: PlatformInvoiceSettings,
-) {
-  if (line.lineCode === 'openai') {
-    return Math.max(0, settings.openaiUpchargePercent);
-  }
-  if (line.lineCode === 'sms') {
-    return Math.max(0, settings.smsUpchargePercent);
-  }
-  if (line.lineCode === 'monthly_platform' || line.lineCode === 'other_charges') {
-    return 0;
-  }
-  return Math.max(0, Number(line.upchargePercent) || 0);
-}
-
 function lineUsesUpcharge(lineCode: string) {
   return lineCode === 'openai' || lineCode === 'sms' || lineCode === 'custom';
 }
 
-function lineTotal(line: PlatformInvoiceEditorLine, settings: PlatformInvoiceSettings) {
+function lineTotal(line: PlatformInvoiceEditorLine) {
   const qty = line.qty > 0 ? line.qty : 1;
-  const pct = resolvedUpchargePercent(line, settings);
-  return computeLineTotal(line.lineCode, line.baseAmount, pct, qty);
-}
-
-function amountWithUpcharge(baseAmount: number, upchargePercent: number) {
-  return roundMoney(baseAmount * (1 + upchargePercent / 100));
-}
-
-function formatUpchargePercentLabel(upchargePercent: number) {
-  const pct = Number(upchargePercent) || 0;
-  if (pct <= 0) {
-    return '—';
-  }
-  const display = Number.isInteger(pct) ? String(pct) : String(pct);
-  return `+${display}%`;
+  const pct = Math.max(0, line.upchargePercent);
+  const flat = Math.max(0, line.upchargeFlat ?? 0);
+  return lineTotalFromParts(line.lineCode, line.baseAmount, pct, qty, flat);
 }
 
 export function AdminInvoiceEditor({
@@ -134,8 +113,8 @@ export function AdminInvoiceEditor({
     }
     return lines
       .filter((line) => line.description.trim())
-      .reduce((sum, line) => sum + lineTotal(line, settings), 0);
-  }, [lines, settings]);
+      .reduce((sum, line) => sum + lineTotal(line), 0);
+  }, [lines]);
 
   useEffect(() => {
     setPortalReady(true);
@@ -289,11 +268,14 @@ export function AdminInvoiceEditor({
           if (patch.lineCode === 'monthly_platform' || patch.lineCode === 'other_charges') {
             next.usageMonth = null;
             next.upchargePercent = 0;
+            next.upchargeFlat = 0;
           } else if (patch.lineCode === 'openai' && settings) {
-            next.upchargePercent = settings.openaiUpchargePercent;
+            next.upchargePercent = defaultUpchargePercent('openai', settings);
+            next.upchargeFlat = defaultUpchargeFlat('openai', settings);
             next.usageMonth = next.usageMonth || usageMonth || null;
           } else if (patch.lineCode === 'sms' && settings) {
-            next.upchargePercent = settings.smsUpchargePercent;
+            next.upchargePercent = defaultUpchargePercent('sms', settings);
+            next.upchargeFlat = defaultUpchargeFlat('sms', settings);
             next.usageMonth = next.usageMonth || usageMonth || null;
           }
         }
@@ -312,6 +294,7 @@ export function AdminInvoiceEditor({
         description: '',
         baseAmount: 0,
         upchargePercent: 0,
+        upchargeFlat: 0,
         usageMonth: null,
         qty: 1,
       },
@@ -353,6 +336,7 @@ export function AdminInvoiceEditor({
           description: line.description.trim(),
           baseAmount: roundMoney(Number(line.baseAmount) || 0),
           upchargePercent: Number(line.upchargePercent) || 0,
+          upchargeFlat: Number(line.upchargeFlat) || 0,
           usageMonth: line.usageMonth,
           qty: Number(line.qty) || 1,
         })),
@@ -595,14 +579,22 @@ export function AdminInvoiceEditor({
                             : '—'}
                       </td>
                       <td className="admin-upcharge-cell">
-                        {formatUpchargePercentLabel(settings.smsUpchargePercent)}
+                        {formatUpchargeLabelFromValues(
+                          settings.smsUpchargePercent,
+                          settings.smsUpchargeFlat,
+                          currency,
+                        )}
                       </td>
                       <td>
                         {usageLoading
                           ? '…'
                           : usage
                             ? formatCurrency(
-                                amountWithUpcharge(usage.smsTotal, settings.smsUpchargePercent),
+                                amountWithUpcharge(
+                                  usage.smsTotal,
+                                  settings.smsUpchargePercent,
+                                  settings.smsUpchargeFlat,
+                                ),
                                 currency,
                               )
                             : '—'}
@@ -620,7 +612,11 @@ export function AdminInvoiceEditor({
                             : '—'}
                       </td>
                       <td className="admin-upcharge-cell">
-                        {formatUpchargePercentLabel(settings.openaiUpchargePercent)}
+                        {formatUpchargeLabelFromValues(
+                          settings.openaiUpchargePercent,
+                          settings.openaiUpchargeFlat,
+                          currency,
+                        )}
                       </td>
                       <td>
                         {usageLoading
@@ -630,6 +626,7 @@ export function AdminInvoiceEditor({
                                 amountWithUpcharge(
                                   usage.openaiTotal,
                                   settings.openaiUpchargePercent,
+                                  settings.openaiUpchargeFlat,
                                 ),
                                 currency,
                               )
@@ -653,10 +650,15 @@ export function AdminInvoiceEditor({
                           ? '…'
                           : usage
                             ? formatCurrency(
-                                amountWithUpcharge(usage.smsTotal, settings.smsUpchargePercent) +
+                                amountWithUpcharge(
+                                  usage.smsTotal,
+                                  settings.smsUpchargePercent,
+                                  settings.smsUpchargeFlat,
+                                ) +
                                   amountWithUpcharge(
                                     usage.openaiTotal,
                                     settings.openaiUpchargePercent,
+                                    settings.openaiUpchargeFlat,
                                   ),
                                 currency,
                               )
@@ -714,9 +716,6 @@ export function AdminInvoiceEditor({
                     </thead>
                     <tbody>
                       {lines.map((line) => {
-                        const upchargePct = settings
-                          ? resolvedUpchargePercent(line, settings)
-                          : 0;
                         const showUpcharge = lineUsesUpcharge(line.lineCode);
 
                         return (
@@ -784,16 +783,22 @@ export function AdminInvoiceEditor({
                                   />
                                   <span className="admin-upcharge-suffix">%</span>
                                 </div>
-                              ) : (
+                              ) : settings ? (
                                 <span className="admin-upcharge-label">
-                                  {upchargePct > 0 ? `+${upchargePct}%` : '—'}
+                                  {formatUpchargeLabelFromValues(
+                                    line.upchargePercent,
+                                    line.upchargeFlat ?? 0,
+                                    currency,
+                                  )}
                                 </span>
+                              ) : (
+                                <span className="admin-upcharge-label">—</span>
                               )
                             ) : (
                               <span className="admin-upcharge-label muted">—</span>
                             )}
                           </td>
-                          <td>{formatCurrency(lineTotal(line, settings), currency)}</td>
+                          <td>{formatCurrency(lineTotal(line), currency)}</td>
                           <td>
                             {!isLocked ? (
                               <button

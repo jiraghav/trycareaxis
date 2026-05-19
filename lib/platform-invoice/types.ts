@@ -4,6 +4,7 @@ export type InvoiceLineInput = {
   description: string;
   baseAmount: number;
   upchargePercent: number;
+  upchargeFlat?: number;
   usageMonth: string | null;
   qty: number;
 };
@@ -13,6 +14,8 @@ export type PlatformInvoiceSettings = {
   otherCharges: number;
   openaiUpchargePercent: number;
   smsUpchargePercent: number;
+  openaiUpchargeFlat: number;
+  smsUpchargeFlat: number;
   stripeCurrency: string;
   stripeDaysUntilDue: number;
   stripeSecretKey: string;
@@ -25,6 +28,7 @@ export type PlatformInvoiceEditorLine = {
   description: string;
   baseAmount: number;
   upchargePercent: number;
+  upchargeFlat: number;
   usageMonth: string | null;
   qty: number;
 };
@@ -54,6 +58,8 @@ export type PlatformInvoiceDefaultsInput = {
   otherCharges: number;
   openaiUpchargePercent: number;
   smsUpchargePercent: number;
+  openaiUpchargeFlat: number;
+  smsUpchargeFlat: number;
   stripeDaysUntilDue: number;
   stripeWebhookSecret?: string;
 };

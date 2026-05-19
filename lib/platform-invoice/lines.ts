@@ -1,45 +1,29 @@
-import { computeLineTotal, roundMoney } from '@/lib/db/invoice-lines';
+import { roundMoney } from '@/lib/db/invoice-lines';
 import {
   formatUsageMonthLabel,
   sanitizeInvoiceLineDescription,
 } from '@/lib/platform-invoice/format';
+import {
+  lineTotalFromInput,
+  resolveUpchargeFlat,
+  resolveUpchargePercent,
+} from '@/lib/platform-invoice/pricing';
 import type { PlatformInvoiceSettings } from '@/lib/platform-invoice/types';
 import type { InvoiceLineInput } from '@/lib/platform-invoice/types';
 
-export function resolveUpchargePercent(
-  code: string,
-  postedPct: number,
-  settings: PlatformInvoiceSettings,
-) {
-  if (code === 'monthly_platform' || code === 'other_charges') {
-    return 0;
-  }
-  if (code === 'openai') {
-    return Math.max(0, settings.openaiUpchargePercent);
-  }
-  if (code === 'sms') {
-    return Math.max(0, settings.smsUpchargePercent);
-  }
-  return Math.max(0, postedPct);
-}
+export { lineTotalFromInput, resolveUpchargeFlat, resolveUpchargePercent } from '@/lib/platform-invoice/pricing';
 
-export function lineTotalFromInput(line: InvoiceLineInput, settings: PlatformInvoiceSettings) {
-  const qty = line.qty > 0 ? line.qty : 1;
-  const pct = resolveUpchargePercent(line.lineCode, line.upchargePercent, settings);
-  return computeLineTotal(line.lineCode, line.baseAmount, pct, qty);
-}
-
-export function grandTotalFromLines(lines: InvoiceLineInput[], settings: PlatformInvoiceSettings) {
+export function grandTotalFromLines(lines: InvoiceLineInput[], _settings?: PlatformInvoiceSettings) {
   return lines
     .filter((line) => line.description.trim() !== '')
-    .reduce((sum, line) => sum + lineTotalFromInput(line, settings), 0);
+    .reduce((sum, line) => sum + lineTotalFromInput(line), 0);
 }
 
-export function hasPositiveTotal(lines: InvoiceLineInput[], settings: PlatformInvoiceSettings) {
+export function hasPositiveTotal(lines: InvoiceLineInput[], settings?: PlatformInvoiceSettings) {
   return grandTotalFromLines(lines, settings) >= 0.01;
 }
 
-export function stripeLinesFromInput(lines: InvoiceLineInput[], settings: PlatformInvoiceSettings) {
+export function stripeLinesFromInput(lines: InvoiceLineInput[], _settings?: PlatformInvoiceSettings) {
   const stripeLines: Array<{ description: string; amountCents: number }> = [];
 
   for (const line of lines) {
@@ -47,7 +31,7 @@ export function stripeLinesFromInput(lines: InvoiceLineInput[], settings: Platfo
       continue;
     }
 
-    const total = lineTotalFromInput(line, settings);
+    const total = lineTotalFromInput(line);
     const cents = Math.round(total * 100);
     if (cents <= 0) {
       continue;
@@ -80,6 +64,7 @@ export function normalizeLineInputs(raw: unknown): InvoiceLineInput[] {
       description: String(row.description ?? '').trim(),
       baseAmount: roundMoney(Number(row.baseAmount ?? row.base_amount ?? 0)),
       upchargePercent: Number(row.upchargePercent ?? row.upcharge_percent ?? 0),
+      upchargeFlat: Number(row.upchargeFlat ?? row.upcharge_flat ?? 0),
       usageMonth,
       qty: Number(row.qty ?? 1),
     };

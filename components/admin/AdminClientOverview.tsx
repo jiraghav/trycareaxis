@@ -100,7 +100,7 @@ function InvoiceBlock({
               Notes: {invoice.notes}
             </p>
           ) : null}
-          <AdminInvoiceLinesTable lines={invoice.lines} />
+          <AdminInvoiceLinesTable lines={invoice.lines} currency={invoice.currency} />
         </div>
       ) : null}
     </article>
@@ -177,7 +177,14 @@ export function AdminClientOverview() {
 
   return (
     <div className="container card">
-      <h2 style={{ marginTop: 0 }}>Client Overview</h2>
+      <div className="section-header-row" style={{ marginBottom: 12 }}>
+        <h2 style={{ margin: 0 }}>Client Overview</h2>
+        <div className="btn-row">
+          <button className="btn ghost" type="button" onClick={refresh} disabled={loading}>
+            {loading ? 'Refreshing…' : 'Refresh'}
+          </button>
+        </div>
+      </div>
       <p className="small muted" style={{ marginTop: 0 }}>
         Expand a client to view invoices, then expand an invoice to see line items. Use Add invoice or
         Invoice defaults per instance.

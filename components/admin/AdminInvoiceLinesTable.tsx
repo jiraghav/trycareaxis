@@ -1,12 +1,15 @@
 import type { AdminInvoiceLine } from '@/lib/db/types';
+import { formatUpchargeLabelFromValues } from '@/lib/platform-invoice/pricing';
 
 type AdminInvoiceLinesTableProps = {
   lines: AdminInvoiceLine[];
+  currency?: string;
   emptyMessage?: string;
 };
 
 export function AdminInvoiceLinesTable({
   lines,
+  currency = 'USD',
   emptyMessage = 'No line items on this invoice.',
 }: AdminInvoiceLinesTableProps) {
   if (!lines.length) {
@@ -23,7 +26,7 @@ export function AdminInvoiceLinesTable({
             <th>Usage month</th>
             <th>Qty</th>
             <th>Base</th>
-            <th>Upcharge %</th>
+            <th>Upcharge</th>
             <th>Line total</th>
           </tr>
         </thead>
@@ -35,7 +38,13 @@ export function AdminInvoiceLinesTable({
               <td>{line.usageMonth || '—'}</td>
               <td>{line.qty}</td>
               <td>{line.baseAmountFormatted}</td>
-              <td>{line.upchargePercent > 0 ? `${line.upchargePercent}%` : '—'}</td>
+              <td>
+                {formatUpchargeLabelFromValues(
+                  line.upchargePercent,
+                  line.upchargeFlat ?? 0,
+                  currency,
+                )}
+              </td>
               <td>{line.totalFormatted}</td>
             </tr>
           ))}

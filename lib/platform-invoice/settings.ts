@@ -11,6 +11,8 @@ const EDITABLE_GLOBAL_KEYS = [
   'cic_platform_other_charges',
   'cic_platform_openai_upcharge_percent',
   'cic_platform_sms_upcharge_percent',
+  'cic_platform_openai_upcharge_flat',
+  'cic_platform_sms_upcharge_flat',
   'cic_stripe_days_until_due',
   'cic_stripe_webhook_secret',
 ] as const;
@@ -39,6 +41,8 @@ export async function fetchPlatformInvoiceDefaults(
     otherCharges: settings.otherCharges,
     openaiUpchargePercent: settings.openaiUpchargePercent,
     smsUpchargePercent: settings.smsUpchargePercent,
+    openaiUpchargeFlat: settings.openaiUpchargeFlat,
+    smsUpchargeFlat: settings.smsUpchargeFlat,
     stripeDaysUntilDue: settings.stripeDaysUntilDue,
     stripeCurrency: settings.stripeCurrency,
     hasStripeSecret: Boolean(settings.stripeSecretKey.trim()),
@@ -53,7 +57,9 @@ function validateDefaultsInput(input: PlatformInvoiceDefaultsInput) {
     input.monthlyFee < 0 ||
     input.otherCharges < 0 ||
     input.openaiUpchargePercent < 0 ||
-    input.smsUpchargePercent < 0
+    input.smsUpchargePercent < 0 ||
+    input.openaiUpchargeFlat < 0 ||
+    input.smsUpchargeFlat < 0
   ) {
     throw new Error('Values cannot be negative.');
   }
@@ -82,6 +88,8 @@ export async function persistPlatformInvoiceDefaults(
     cic_platform_other_charges: String(input.otherCharges),
     cic_platform_openai_upcharge_percent: String(input.openaiUpchargePercent),
     cic_platform_sms_upcharge_percent: String(input.smsUpchargePercent),
+    cic_platform_openai_upcharge_flat: String(input.openaiUpchargeFlat),
+    cic_platform_sms_upcharge_flat: String(input.smsUpchargeFlat),
     cic_stripe_days_until_due: String(
       Math.min(365, Math.max(1, Math.round(input.stripeDaysUntilDue))),
     ),

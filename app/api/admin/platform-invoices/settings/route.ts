@@ -13,6 +13,8 @@ function parseDefaultsInput(body: Record<string, unknown>): PlatformInvoiceDefau
     otherCharges: Number(body.otherCharges ?? 0),
     openaiUpchargePercent: Number(body.openaiUpchargePercent ?? 0),
     smsUpchargePercent: Number(body.smsUpchargePercent ?? 0),
+    openaiUpchargeFlat: Number(body.openaiUpchargeFlat ?? 0),
+    smsUpchargeFlat: Number(body.smsUpchargeFlat ?? 0),
     stripeDaysUntilDue: Number(body.stripeDaysUntilDue ?? 30),
     stripeWebhookSecret:
       body.stripeWebhookSecret === undefined || body.stripeWebhookSecret === null

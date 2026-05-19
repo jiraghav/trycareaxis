@@ -7,6 +7,8 @@ import {
   normalizeInvoiceLine,
   sumLineTotals,
 } from '@/lib/db/invoice-lines';
+import { fetchPlatformInvoiceGlobals } from '@/lib/platform-invoice/defaults';
+import { lineTotalFromParts } from '@/lib/platform-invoice/pricing';
 import {
   DEFAULT_INVOICE_LINES_QUERY,
   DEFAULT_INVOICE_QUERY,
@@ -267,20 +269,31 @@ async function fetchPlatformClientCount(source: InvoiceDbSource) {
 
 async function fetchSourceInvoices(source: InvoiceDbSource): Promise<InvoiceSourceResult> {
   try {
-    const [rows, platformClientCount, linesByInvoiceId] = await Promise.all([
+    const [rows, platformClientCount, linesByInvoiceId, settings] = await Promise.all([
       querySource(source, source.query ?? DEFAULT_INVOICE_QUERY),
       fetchPlatformClientCount(source),
       fetchInvoiceLinesById(source),
+      fetchPlatformInvoiceGlobals(source),
     ]);
     const invoices = rows.map((row, index) => {
       const rowId = String(pickField(row, ['id', 'invoice_id', 'uuid']) ?? '');
       const currency = String(pickField(row, ['currency']) ?? 'usd').toLowerCase();
       const rawLines = linesByInvoiceId.get(rowId) ?? [];
-      const lines = rawLines.map((line) => ({
-        ...line,
-        baseAmountFormatted: formatCurrency(line.baseAmount, currency),
-        totalFormatted: formatCurrency(line.total, currency),
-      }));
+      const lines = rawLines.map((line) => {
+        const total = lineTotalFromParts(
+          line.lineCode,
+          line.baseAmount,
+          line.upchargePercent,
+          line.qty,
+          line.upchargeFlat ?? 0,
+        );
+        return {
+          ...line,
+          total,
+          baseAmountFormatted: formatCurrency(line.baseAmount, currency),
+          totalFormatted: formatCurrency(total, currency),
+        };
+      });
       return normalizeInvoice(row, source, index, lines);
     });
 
