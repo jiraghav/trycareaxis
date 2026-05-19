@@ -173,6 +173,8 @@ export async function loadNewInvoiceEditor(source: InvoiceDbSource) {
       currency: settings.stripeCurrency,
 
       stripeInvoiceId: '',
+      stripeHostedUrl: '',
+      stripeDashboardUrl: '',
 
       lines: buildDefaultLineTemplate(settings),
 
